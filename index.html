@@ -11,22 +11,13 @@
 <style>
 /* Layout: white sidebar, pastel status cards that double as filters, one calm white list. Red late, yellow soon, green paid, everywhere. */
 :root{
+  color-scheme:light;
   --bg:#eef3f1;--panel:#ffffff;--ink:#1b2b28;--muted:#5f6f6a;--rule:#e1e8e5;--tint:#f1f5f3;
   --f-late:#e5534b;--f-soon:#f0b429;--f-ok:#2fb56a;--f-stay:#6a5ee8;--lime:#d4f266;--on-lime:#1b2b28;--wa:#0e7a6c;--on-wa:#ffffff;
   --c-all:#d9d5fb;--c-late:#ffd6d2;--c-soon:#ffe9a6;--c-ok:#bfedcd;
   --late:#a8231b;--soon:#765000;--ok:#17653a;
   --display:"Poppins","Mukta",system-ui,sans-serif;--body:"Mukta",system-ui,"Noto Sans Devanagari",sans-serif;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#111816;--panel:#1a2421;--ink:#e9f1ee;--muted:#a3b2ad;--rule:#2c3a36;--tint:#232f2b;
-  --f-stay:#a79fff;--wa:#5fd3bd;--on-wa:#07241f;
-  --c-all:#37335f;--c-late:#552a27;--c-soon:#4d3d12;--c-ok:#1d4a30;
-  --late:#ffaaa2;--soon:#f5cf7a;--ok:#8fe0ae;color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#111816;--panel:#1a2421;--ink:#e9f1ee;--muted:#a3b2ad;--rule:#2c3a36;--tint:#232f2b;
-  --f-stay:#a79fff;--wa:#5fd3bd;--on-wa:#07241f;
-  --c-all:#37335f;--c-late:#552a27;--c-soon:#4d3d12;--c-ok:#1d4a30;
-  --late:#ffaaa2;--soon:#f5cf7a;--ok:#8fe0ae;color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font:400 17px/1.4 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
 button,input,select,textarea{font:inherit;color:inherit}
