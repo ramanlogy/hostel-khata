@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+<title>Hostel Khata</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Mukta:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: white sidebar, pastel status cards that double as filters, one calm white list. Red late, yellow soon, green paid, everywhere. */
+:root{
+  --bg:#eef3f1;--panel:#ffffff;--ink:#1b2b28;--muted:#5f6f6a;--rule:#e1e8e5;--tint:#f1f5f3;
+  --f-late:#e5534b;--f-soon:#f0b429;--f-ok:#2fb56a;--f-stay:#6a5ee8;--lime:#d4f266;--on-lime:#1b2b28;--wa:#0e7a6c;--on-wa:#ffffff;
+  --c-all:#d9d5fb;--c-late:#ffd6d2;--c-soon:#ffe9a6;--c-ok:#bfedcd;
+  --late:#a8231b;--soon:#765000;--ok:#17653a;
+  --display:"Poppins","Mukta",system-ui,sans-serif;--body:"Mukta",system-ui,"Noto Sans Devanagari",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111816;--panel:#1a2421;--ink:#e9f1ee;--muted:#a3b2ad;--rule:#2c3a36;--tint:#232f2b;
+  --f-stay:#a79fff;--wa:#5fd3bd;--on-wa:#07241f;
+  --c-all:#37335f;--c-late:#552a27;--c-soon:#4d3d12;--c-ok:#1d4a30;
+  --late:#ffaaa2;--soon:#f5cf7a;--ok:#8fe0ae;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111816;--panel:#1a2421;--ink:#e9f1ee;--muted:#a3b2ad;--rule:#2c3a36;--tint:#232f2b;
+  --f-stay:#a79fff;--wa:#5fd3bd;--on-wa:#07241f;
+  --c-all:#37335f;--c-late:#552a27;--c-soon:#4d3d12;--c-ok:#1d4a30;
+  --late:#ffaaa2;--soon:#f5cf7a;--ok:#8fe0ae;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 17px/1.4 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--wa);outline-offset:2px}
+svg{width:1.3em;height:1.3em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.shell{max-width:1400px;margin-inline:auto;display:grid;grid-template-columns:232px minmax(0,1fr);gap:24px;align-items:start}
+.side{background:var(--panel);border-radius:20px;padding:22px 14px;display:flex;flex-direction:column;gap:26px;position:sticky;top:16px;min-height:calc(100vh - 56px)}
+.brand{font:600 22px/1 var(--display);padding-inline:10px}
+nav{display:grid;gap:8px}
+.nav{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;border:0;border-radius:14px;background:none;font-weight:500;font-size:18px;text-align:left}
+.nav[aria-current="page"]{background:var(--lime);color:var(--on-lime);font-weight:600}
+.badge{margin-left:auto;background:var(--late);color:var(--panel);border-radius:99px;min-width:28px;padding:0 8px;text-align:center;font-size:16px;font-variant-numeric:tabular-nums}
+.lang{margin-top:auto;display:flex;background:var(--tint);border-radius:12px;padding:4px}
+.lang button{flex:1;border:0;background:none;padding:6px 4px;min-height:42px;border-radius:9px}
+.lang button[aria-pressed="true"]{background:var(--panel);font-weight:600}
+.main{display:grid;gap:18px;min-width:0}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+.top h1{font:600 30px/1.2 var(--display);margin:0}
+.today{color:var(--muted)}
+.note{font-size:15px;color:var(--muted);margin:0}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.stat{display:grid;gap:2px;text-align:left;border:3px solid transparent;border-radius:18px;padding:16px 18px;color:var(--ink)}
+.stat[aria-pressed="true"]{border-color:var(--ink)}
+.stat .lab{font-weight:600;font-size:18px}
+.stat .n{font:600 40px/1.15 var(--display);font-variant-numeric:tabular-nums}
+.stat .s{font-size:16px}
+.c-all{background:var(--c-all)}.c-late{background:var(--c-late)}.c-soon{background:var(--c-soon)}.c-ok{background:var(--c-ok)}
+.search{width:100%;min-height:54px;padding:0 18px;border:0;border-radius:14px;background:var(--panel)}
+.book{background:var(--panel);border-radius:18px;overflow:hidden}
+.row{display:grid;grid-template-columns:minmax(210px,2.2fr) .95fr 1.1fr 1.05fr 1.2fr 236px;gap:12px;align-items:center;padding:12px 18px;border-top:1px solid var(--rule)}
+.row:first-child{border-top:0}
+.row.head{font-size:16px;font-weight:500;color:var(--muted);padding-block:12px 8px}
+.who{display:flex;align-items:center;gap:12px;min-width:0;background:none;border:0;padding:0;text-align:left}
+.face{width:48px;height:48px;border-radius:50%;background:var(--c-all);display:grid;place-items:center;font:600 17px var(--display);flex:none}
+.face.late{background:var(--c-late);color:var(--late)}.face.soon,.face.today{background:var(--c-soon);color:var(--soon)}.face.paid{background:var(--c-ok);color:var(--ok)}
+.name{display:block;font-weight:600;font-size:19px;line-height:1.25}
+.sub{display:block;color:var(--muted);font-size:15.5px;line-height:1.3}
+.sub.warn{color:var(--soon);font-weight:600}
+.cell{min-width:0;font-variant-numeric:tabular-nums}
+.cell[data-l]::before{display:none}
+.left{font-weight:700;font-size:20px}
+.left.is-late{color:var(--late)}
+.tag{display:inline-block;padding:1px 11px;border-radius:99px;font-size:15.5px;font-weight:600}
+.tag.late{background:var(--c-late);color:var(--late)}.tag.soon{background:var(--c-soon);color:var(--soon)}.tag.ok{background:var(--c-ok);color:var(--ok)}
+.acts{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 14px;border-radius:13px;border:0;font-weight:600}
+.pri{background:var(--lime);color:var(--on-lime);flex:1}
+.wa{background:var(--wa);color:var(--on-wa)}
+.sec{background:var(--tint)}
+.wa[disabled]{visibility:hidden}
+.empty{padding:40px 16px;text-align:center;color:var(--muted)}
+.big{font-size:20px;min-height:60px;padding:0 24px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;align-items:start}
+.card{background:var(--panel);border-radius:18px;padding:20px;display:grid;gap:12px;min-width:0}
+.headline{font:500 21px/1.3 var(--display);margin:0}
+h2{font:600 21px/1.25 var(--display);margin:0}
+.q{display:flex;align-items:center;gap:12px;padding:10px;border:0;border-radius:13px;background:none;text-align:left;width:100%}
+.q[aria-current="true"]{background:var(--tint)}
+.q.done{opacity:.6}
+.q .end{margin-left:auto;text-align:right;flex:none}
+.bubble{background:var(--c-ok);padding:16px 18px;border-radius:16px 16px 4px 16px;font-size:20px;line-height:1.45}
+.ask{font:600 22px/1.25 var(--display)}
+.row2{display:flex;flex-wrap:wrap;gap:10px}
+.row2 .btn{flex:1 1 180px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.fact b{display:block;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.fact span{color:var(--muted);font-size:15.5px}
+.hero{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.hero .face{width:68px;height:68px;font-size:24px}
+.hero h2{font-size:28px}
+.hero .acts{margin-left:auto;flex-wrap:wrap}
+.tri{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.tri .stat{cursor:default}
+.tri .n{font-size:26px;line-height:1.3}
+.line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--rule);font-variant-numeric:tabular-nums}
+.line:first-of-type{border-top:0}
+.line span:last-child{text-align:right;color:var(--muted);flex:none}
+form.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+label.fld{display:grid;gap:4px;font-weight:600}
+.fld input,.fld select,.amt{min-height:54px;padding:0 14px;border:2px solid var(--rule);border-radius:12px;background:var(--tint);width:100%;font-weight:400}
+.date3{display:grid;grid-template-columns:1fr 2fr 1.2fr;gap:6px}
+.err{color:var(--late);font-size:16px;font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:50px;padding:0 18px;border:0;border-radius:12px;background:var(--tint);font-weight:500}
+.chip[aria-pressed="true"]{background:var(--lime);color:var(--on-lime);font-weight:600}
+dialog{border:0;border-radius:20px;padding:24px;background:var(--panel);color:var(--ink);width:min(480px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(12,24,20,.55)}
+.dlg{display:grid;gap:14px}
+.amt{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}
+.after{font-size:19px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 12px 10px 20px;border-radius:14px;display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);z-index:20}
+#toast[hidden]{display:none}
+#toast button{background:var(--bg);color:var(--ink);border:0;border-radius:9px;min-height:44px;padding:0 16px;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:16px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:16px;height:16px;border-radius:5px}
+.calwrap{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
+.calhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.calhead h2{font-size:24px}
+.calhead .sub{flex:1 1 auto}
+.calnav{display:flex;gap:6px}
+.calnav .btn{min-height:46px}
+.calnav .btn[disabled]{opacity:.35;cursor:default}
+.wk,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.wk div{text-align:center;color:var(--muted);font-size:15.5px;font-weight:500}
+.day{display:flex;flex-direction:column;gap:3px;min-width:0;min-height:104px;padding:6px;border:2px solid transparent;border-radius:12px;background:var(--tint);text-align:left;overflow:hidden}
+.day[aria-pressed="true"]{border-color:var(--ink)}
+.day .top2{display:flex;justify-content:space-between;align-items:center;gap:4px}
+.day .d{font-weight:600;font-size:18px;line-height:28px;min-width:28px;text-align:center;border-radius:99px;font-variant-numeric:tabular-nums}
+.day.now .d{background:var(--lime);color:var(--on-lime)}
+.day .ad{font-size:13px;color:var(--muted)}
+.ev{display:block;font-size:15px;line-height:1.35;padding:0 6px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.more{font-size:14.5px;color:var(--muted);padding-inline:6px}
+.dl{display:grid;gap:8px;padding:12px 0;border-top:1px solid var(--rule)}
+.dl:first-of-type{border-top:0;padding-top:0}
+.dl .tagrow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.floor{font:500 18px/1.2 var(--display);color:var(--muted);margin:4px 0 -6px}
+.roomgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.room{background:var(--panel);border-radius:18px;padding:14px;display:grid;gap:8px;align-content:start;min-width:0}
+.room .rt{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.room h3{font:600 19px/1.2 var(--display);margin:0}
+.bed{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:62px;padding:8px 12px;border:0;border-radius:12px;text-align:left;color:var(--ink)}
+.bed .sub{color:var(--ink)}
+.bed b{display:block;font-weight:600;font-size:17.5px;line-height:1.25}
+.bed .go{flex:none;background:var(--lime);color:var(--on-lime);border-radius:9px;padding:3px 12px;font-weight:600}
+@media (max-width:1100px){.calwrap{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:700px){
+  .wk,.days{gap:3px}
+  .day{min-height:66px;padding:4px}
+  .day .ad{display:none}
+  .ev{font-size:0;height:7px;padding:0}
+}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.bar .search{flex:1 1 260px;width:auto;min-width:0}
+.bar .btn{min-height:54px;padding:0 20px}
+.sortrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.sortrow .chip{background:var(--panel)}
+.sortrow .chip[aria-pressed="true"]{background:var(--lime)}
+.row.p{grid-template-columns:minmax(200px,2fr) 1fr 1.1fr 1fr 1fr 256px}
+.del{background:var(--c-late);color:var(--late)}
+.acts .sec{flex:1}
+.owe{background:var(--c-late);color:var(--late);padding:8px 12px;border-radius:10px;font-weight:600}
+.dlg p{margin:0}
+.lefton{color:var(--muted)}
+.meter{display:block;height:8px;max-width:150px;margin-top:5px;border-radius:99px;overflow:hidden;background:color-mix(in srgb,var(--ink) 13%,transparent)}
+.meter i{display:block;height:100%;border-radius:inherit}
+.meter.late i{background:var(--f-late)}.meter.soon i{background:var(--f-soon)}.meter.ok i{background:var(--f-ok)}.meter.stay i{background:var(--f-stay)}
+.stat .meter,.bed .meter{max-width:none}
+.stat .meter.late i,.bed .meter.late i{background:var(--late)}.stat .meter.soon i,.bed .meter.soon i{background:var(--soon)}.stat .meter.ok i,.bed .meter.ok i{background:var(--ok)}
+.row.p{grid-template-columns:minmax(200px,2fr) 1fr 1.1fr 1fr 1fr 170px}
+.setgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;align-items:start}
+.setgrid .wide{grid-column:1/-1}
+.hint{color:var(--muted);font-size:15.5px;margin:0}
+.tgl{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:50px;padding:4px 0;border:0;background:none;text-align:left}
+.tgl .sw{flex:none;width:54px;height:30px;border-radius:99px;background:color-mix(in srgb,var(--ink) 18%,transparent);position:relative}
+.tgl .sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--panel)}
+.tgl[aria-pressed="true"] .sw{background:var(--wa)}
+.tgl[aria-pressed="true"] .sw::after{left:27px}
+.fld textarea{width:100%;min-height:82px;padding:10px 14px;border:2px solid var(--rule);border-radius:12px;background:var(--tint);font-weight:400;resize:vertical}
+.fld input,.fld select{color:var(--ink)}
+.addline{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+.addline .fld{flex:1 1 150px;min-width:0}
+.addline .btn{min-height:54px}
+.rm{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--rule)}
+.rm b{min-width:76px;font-weight:600}
+.bchip{display:inline-flex;align-items:center;gap:6px;min-height:42px;padding:0 12px;border-radius:10px;color:var(--ink)}
+.bchip button{border:0;background:none;font-size:20px;line-height:1;padding:0 2px;min-width:28px;min-height:36px}
+.mini{border:0;border-radius:9px;background:var(--tint);min-height:38px;padding:0 12px;margin-left:8px;font-weight:600;font-size:15.5px}
+.settle{display:grid;gap:4px;background:var(--tint);border-radius:12px;padding:12px 14px;font-variant-numeric:tabular-nums}
+.settle div{display:flex;justify-content:space-between;gap:12px}
+.settle .res{font-weight:700;font-size:19px;padding-top:6px;border-top:1px solid var(--rule)}
+.rc{display:grid;gap:6px;font-variant-numeric:tabular-nums}
+.rc div{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-top:1px solid var(--rule)}
+.rc .big2{font-size:24px;font-weight:700}
+.quick{display:flex;flex-wrap:wrap;gap:6px}
+.quick .chip{min-height:42px;padding:0 12px}
+.todo{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+.todo p{margin:0;flex:1 1 280px;font:500 20px/1.3 var(--display);text-wrap:balance}
+.todo .btn{min-height:52px;padding:0 18px}
+.stat .n.money{font-size:30px;line-height:1.3}
+.home{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
+.col{display:grid;gap:18px;min-width:0}
+.ch{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ch .sub{margin-top:1px}
+.seeall{flex:none;border:0;border-radius:10px;background:var(--lime);color:var(--on-lime);min-height:42px;padding:0 14px;font-weight:600}
+.drow{display:grid;grid-template-columns:minmax(0,1fr) 150px 232px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--rule)}
+.drow:first-of-type{border-top:0}
+.drow .cell{font-size:16px;line-height:1.35}
+.prow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--rule);font-variant-numeric:tabular-nums}
+.prow:first-of-type{border-top:0}
+.prow .face{width:42px;height:42px;font-size:15px}
+.prow .who{flex:1}
+.prow .name{font-size:17.5px}
+.prow b{flex:none;font-weight:700}
+.plot{position:relative;height:150px;margin:14px 0 0 88px}
+.gl{position:absolute;left:0;right:0;border-top:1px solid var(--rule)}
+.gl span{position:absolute;right:100%;margin-right:8px;top:-11px;font-size:14.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.bars{position:absolute;inset:0;display:flex;align-items:flex-end}
+.bcol{position:relative;flex:1;height:100%;display:flex;align-items:flex-end;justify-content:center;outline-offset:-2px}
+.bcol i{display:block;width:min(36px,60%);border-radius:4px 4px 0 0;background:color-mix(in srgb,var(--f-stay) 55%,var(--panel))}
+.bcol.cur i{background:var(--f-stay)}
+.bcol .val{position:absolute;left:50%;transform:translateX(-50%);font-size:14.5px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bcol:hover i,.bcol:focus-visible i{background:var(--f-stay)}
+.bcol[data-tip]:hover::after,.bcol[data-tip]:focus-visible::after{content:attr(data-tip);position:absolute;bottom:calc(100% - 20px);left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:3px 9px;border-radius:7px;font-size:14.5px;white-space:nowrap;z-index:3}
+.xl{display:flex;margin-left:88px;margin-top:4px}
+.xl span{flex:1;text-align:center;font-size:14.5px;color:var(--muted);min-width:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.row.pay{grid-template-columns:minmax(200px,2fr) 1fr 1fr 1.2fr 120px}
+.row.pay .mini{margin-left:0}
+.setlist{display:grid;gap:10px;max-width:920px}
+.setsec{background:var(--panel);border-radius:18px;overflow:hidden}
+.sechead{display:flex;align-items:center;gap:14px;width:100%;min-height:76px;padding:12px 18px;border:0;background:none;text-align:left}
+.secico{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;flex:none;color:var(--ink)}
+.sechead .t{flex:1;min-width:0}
+.sechead b{display:block;font:600 19px/1.25 var(--display)}
+.sechead .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sechead .chev{flex:none;color:var(--muted);transition:none}
+.setsec.open .chev{transform:rotate(180deg)}
+.secbody{padding:0 18px 16px;display:grid}
+.setrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:8px 20px;align-items:center;padding:12px 0;border-top:1px solid var(--rule)}
+.setrow .sq{font-weight:600;font-size:18px;line-height:1.3}
+.setrow .sub{font-weight:400}
+.setrow select,.setrow input{width:100%;min-height:56px;padding:0 14px;border:2px solid var(--rule);border-radius:12px;background:var(--tint);font-size:18px;color:var(--ink)}
+.setrow select{cursor:pointer}
+.tgl{border-top:1px solid var(--rule);min-height:60px;font-size:18px;font-weight:500}
+.tgl .rgt{display:flex;align-items:center;gap:10px;flex:none}
+.tgl .word{color:var(--muted);font-size:16px;font-weight:600;min-width:28px;text-align:right}
+.tgl[aria-pressed="true"] .word{color:var(--ok)}
+.editor{display:grid;gap:10px;padding:12px 0;border-top:1px solid var(--rule)}
+.editor textarea{width:100%;min-height:96px;padding:12px 14px;border:2px solid var(--rule);border-radius:12px;background:var(--tint);font-size:18px;resize:vertical;color:var(--ink)}
+.editor .sq{font-weight:600;font-size:18px}
+.editor .quick{align-items:center}
+.bedbox{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 0;border-top:1px solid var(--rule)}
+.bedbox .bchip{min-height:50px;font-size:17.5px}
+@media (max-width:680px){.setrow{grid-template-columns:minmax(0,1fr)}}
+a.btn{text-decoration:none}
+@media (max-width:1240px){.row.pay{grid-template-columns:1fr 1fr}}
+@media (max-width:1100px){.home{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.drow{grid-template-columns:minmax(0,1fr)}.plot,.xl{margin-left:70px}.gl span{font-size:13px}}
+@media (max-width:1240px){.row.p{grid-template-columns:1fr 1fr}}
+@media (max-width:1240px){
+  .row.head{display:none}
+  .row{grid-template-columns:1fr 1fr;gap:10px 14px;padding:14px 16px}
+  .row>.who,.row>.acts{grid-column:1/-1}
+  .cell[data-l]::before{content:attr(data-l);display:block;color:var(--muted);font-size:15px}
+}
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;min-height:0;padding:14px;gap:12px}
+  nav{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .nav{justify-content:center;flex-direction:column;gap:2px;padding:8px 4px;font-size:15.5px;text-align:center}
+  .badge{margin-left:0}
+  .lang{margin-top:0}
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .two,.tri{grid-template-columns:minmax(0,1fr)}
+  .hero .acts{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:no-preference){.btn,.nav,.chip,.stat{transition:background-color .12s,border-color .12s}}
+</style>
+</head>
+<body>
+
+
+<div class="shell">
+  <aside class="side">
+    <div class="brand">Hostel Khata</div>
+    <nav id="nav"></nav>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-act="lang" data-v="en" id="l-en">English</button>
+      <button type="button" data-act="lang" data-v="ne" id="l-ne">नेपाली</button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="top"><h1 id="title"></h1><span class="today" id="today"></span></div>
+    <main id="app" class="main"></main>
+    <p class="note" id="note"></p>
+  </div>
+</div>
+<dialog id="pay"></dialog>
+<dialog id="ask"></dialog>
+<div id="toast" hidden></div>
+
+<script>
+const ML={2082:[31,31,32,31,31,31,30,29,30,29,30,30],2083:[31,31,32,31,31,31,30,29,30,29,30,30],2084:[31,32,31,32,31,30,30,30,29,29,30,31]};
+const YRS=[2082,2083,2084];
+const MN={en:['Baisakh','Jestha','Asar','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'],
+ne:['बैशाख','जेठ','असार','साउन','भदौ','असोज','कार्तिक','मंसिर','पुस','माघ','फागुन','चैत']};
+function toIdx(y,m,d){let n=0;for(const yy of YRS)for(let i=0;i<12;i++){if(yy===y&&i===m-1)return n+d-1;n+=ML[yy][i]}return n}
+function fromIdx(n){for(const yy of YRS)for(let i=0;i<12;i++){if(n<ML[yy][i])return[yy,i+1,n+1];n-=ML[yy][i]}return[2084,12,30]}
+function addMonth(idx,jd){let[y,m]=fromIdx(idx);m++;if(m>12){m=1;y++}if(!ML[y])return idx+30;return toIdx(y,m,Math.min(jd,ML[y][m-1]))}
+const TODAY=toIdx(2083,7,23);
+
+const T={en:{
+note:'Mockup with made-up students. Nothing here is saved and no message is really sent.',today:'Today',students:'Students',messages:'Messages',add:'New student',
+search:'Search by name or room',all:'All',late:'Late',soon:'Due soon',paid:'Paid',
+cStudent:'Student',cFee:'Monthly fee',cLast:'Last paid',cNext:'Due date',cLeft:'Left to pay',cStay:'Stay',
+room:'Room',got:'Money received',notYet:'Not paid yet',none:'Nothing to pay',adv:'Advance',partPaid:'Part paid',
+daysLate:n=>n===1?'1 day late':n+' days late',dueToday:'Due today',inDays:n=>n===1?'Tomorrow':'In '+n+' days',monthsLeft:n=>n<=0?'Stay finished':n===1?'1 month left':n+' months left',
+head:(n,a)=>n?n===1?'1 student has to pay. '+a+' left to collect.':n+' students have to pay. '+a+' left to collect.':'Everyone has paid.',
+noMatch:'No student found.',
+qTitle:n=>n===1?'1 message to send today':n+' messages to send today',qDone:'All messages are sent for today.',
+msgTo:'Message to',open:'Open WhatsApp',sentQ:'Did you press Send in WhatsApp?',yes:'Yes, sent',no:'No, not sent',sentTag:'Sent',demo:'In the real app this button opens WhatsApp with the message ready.',
+mSoon:(n,a,d,h)=>`Namaste ${n}, your hostel fee of ${a} is due on ${d}. Thank you, ${h}.`,
+mToday:(n,a,d,h)=>`Namaste ${n}, your hostel fee of ${a} is due today. Thank you, ${h}.`,
+mLate:(n,a,d,h)=>`Namaste ${n}, your hostel fee of ${a} has been left to pay since ${d}. Please pay soon. Thank you, ${h}.`,
+back:'Back to students',phone:'Phone',guardian:'Guardian',joined:'Joined',ends:'Stay ends',payments:'Money paid',history:'Everything that happened',stayH:'Months of stay',noPay:'No payments yet.',
+lJoin:'Joined the hostel',lPaid:(a,h)=>`Paid ${a} by ${h}`,lMsg:'WhatsApp reminder sent',
+payTitle:n=>'Money received from '+n,amount:'How much?',full:'All left',oneMonth:'One month',how:'How was it paid?',cash:'Cash',bank:'Bank',save:'Save',cancel:'Cancel',after:a=>'Left after this: '+a,afterNone:'Nothing left after this.',amtErr:'Please write an amount above zero.',
+saved:(a,n)=>`Saved ${a} from ${n}.`,undo:'Undo',undone:'Removed.',addH:'New student',fName:'Name',fPhone:'Student phone',fGuard:'Guardian phone',fRoom:'Room',fFee:'Monthly fee',fDate:'Joining date',fStay:'How many months?',months:n=>n+' months',saveS:'Save student',nameErr:'Please write the name.',phoneErr:'Please write a 10-digit phone number.',feeErr:'Please write the monthly fee.',addedS:n=>n+' is added.',sentOk:n=>'Marked as sent to '+n+'.'
+},ne:{
+note:'यो नमुना हो, विद्यार्थीहरू काल्पनिक हुन्। यहाँ केही सेभ हुँदैन र सन्देश पनि जाँदैन।',today:'आज',students:'विद्यार्थी',messages:'सन्देश',add:'नयाँ विद्यार्थी',
+search:'नाम वा कोठा खोज्नुहोस्',all:'सबै',late:'ढिला',soon:'तिर्ने बेला',paid:'तिरेको',
+cStudent:'विद्यार्थी',cFee:'मासिक शुल्क',cLast:'पछिल्लो पटक तिरेको',cNext:'तिर्ने दिन',cLeft:'बाँकी',cStay:'बसाइ',
+room:'कोठा',got:'पैसा आयो',notYet:'अहिलेसम्म तिरेको छैन',none:'बाँकी छैन',adv:'अग्रिम',partPaid:'केही तिरेको',
+daysLate:n=>n+' दिन ढिला',dueToday:'आज तिर्ने',inDays:n=>n===1?'भोलि':n+' दिनपछि',monthsLeft:n=>n<=0?'बसाइ सकियो':n+' महिना बाँकी',
+head:(n,a)=>n?n+' जनाले तिर्न बाँकी छ। जम्मा '+a+' उठाउन बाँकी।':'सबैले तिरिसके।',
+noMatch:'विद्यार्थी भेटिएन।',
+qTitle:n=>'आज '+n+' वटा सन्देश पठाउनु छ',qDone:'आजका सबै सन्देश पठाइसकियो।',
+msgTo:'सन्देश पाउने',open:'व्हाट्सएप खोल्नुहोस्',sentQ:'व्हाट्सएपमा Send थिच्नुभयो?',yes:'हो, पठाएँ',no:'अहँ, पठाइनँ',sentTag:'पठाइयो',demo:'साँचो एपमा यो बटनले सन्देश तयार भएको व्हाट्सएप खोल्छ।',
+mSoon:(n,a,d,h)=>`नमस्ते ${n}, तपाईंको होस्टल शुल्क ${a} ${d} मा तिर्नुपर्ने छ। धन्यवाद, ${h}।`,
+mToday:(n,a,d,h)=>`नमस्ते ${n}, तपाईंको होस्टल शुल्क ${a} आज तिर्नुपर्ने छ। धन्यवाद, ${h}।`,
+mLate:(n,a,d,h)=>`नमस्ते ${n}, तपाईंको होस्टल शुल्क ${a} ${d} देखि बाँकी छ। कृपया चाँडै तिरिदिनुहोला। धन्यवाद, ${h}।`,
+back:'विद्यार्थी सूचीमा फर्कनुहोस्',phone:'फोन',guardian:'अभिभावक',joined:'आएको मिति',ends:'बसाइ सकिने',payments:'तिरेको पैसा',history:'सबै घटना',stayH:'बसाइका महिना',noPay:'अहिलेसम्म केही तिरेको छैन।',
+lJoin:'होस्टलमा आएको',lPaid:(a,h)=>`${h} बाट ${a} तिरेको`,lMsg:'व्हाट्सएप सन्देश पठाइएको',
+payTitle:n=>n+' बाट पैसा आयो',amount:'कति आयो?',full:'सबै बाँकी',oneMonth:'एक महिना',how:'कसरी तिर्नुभयो?',cash:'नगद',bank:'बैंक',save:'सेभ गर्नुहोस्',cancel:'रद्द',after:a=>'यसपछि बाँकी: '+a,afterNone:'यसपछि केही बाँकी रहँदैन।',amtErr:'कृपया शून्यभन्दा बढी रकम लेख्नुहोस्।',
+saved:(a,n)=>`${n} बाट ${a} सेभ भयो।`,undo:'फिर्ता लिनुहोस्',undone:'हटाइयो।',addH:'नयाँ विद्यार्थी',fName:'नाम',fPhone:'विद्यार्थीको फोन',fGuard:'अभिभावकको फोन',fRoom:'कोठा',fFee:'मासिक शुल्क',fDate:'आएको मिति',fStay:'कति महिना बस्ने?',months:n=>n+' महिना',saveS:'विद्यार्थी सेभ गर्नुहोस्',nameErr:'कृपया नाम लेख्नुहोस्।',phoneErr:'कृपया १० अङ्कको फोन नम्बर लेख्नुहोस्।',feeErr:'कृपया मासिक शुल्क लेख्नुहोस्।',addedS:n=>n+' थपियो।',sentOk:n=>n+' लाई पठाएको भनेर राखियो।'
+}};
+let lang='en';
+const t=(k,...a)=>{const v=T[lang][k];return typeof v==='function'?v(...a):v};
+const DEV='०१२३४५६७८९';
+const num=s=>lang==='ne'?String(s).replace(/\d/g,d=>DEV[d]):String(s);
+const rs=n=>(lang==='ne'?'रु. ':'Rs ')+num(Number(n).toLocaleString('en-IN'));
+const fmt=i=>{const[y,m,d]=fromIdx(i);return `${num(d)} ${MN[lang][m-1]} ${num(y)}`};
+const fmtS=i=>{const[,m,d]=fromIdx(i);return `${num(d)} ${MN[lang][m-1]}`};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const initials=n=>n.split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const HOSTEL='Hamro Hostel';
+const I={list:'<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',msg:'<svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.6-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg>',plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',cash:'<svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></svg>',back:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>'};
+
+let nextId=1;
+function dues(j,jd){const a=[j];let p=j;for(;;){const n=addMonth(p,jd);if(n>TODAY||n===p)break;a.push(n);p=n}return a}
+function make(name,ph,gd,room,fee,y,m,d,months,state){
+  const join=toIdx(y,m,d),ds=dues(join,d),last=ds[ds.length-1];
+  const unpaid=state==='late2'?2:(state==='late1'||state==='today')?1:0;
+  const paidDs=ds.slice(0,ds.length-unpaid);
+  const pays=[];
+  if(state==='part')pays.push({d:TODAY,a:4000,h:'esewa'});
+  paidDs.slice().reverse().forEach((due,i)=>{if(state==='part'&&i===0)return;pays.push({d:Math.min(due+(name.length%3),TODAY),a:fee,h:['cash','esewa','bank'][name.length%3]})});
+  const left=state==='late2'?fee*2:state==='late1'||state==='today'?fee:state==='part'?fee-4000:0;
+  const lateSince=left?(state==='late2'?ds[ds.length-2]:last):null;
+  const log=[{d:join,k:'lJoin'}];
+  pays.slice().reverse().forEach(p=>log.push({d:p.d,k:'lPaid',a:p.a,h:p.h}));
+  return{id:nextId++,name,ph,gd,room,fee,join,jd:d,months,left,lateSince,nextDue:addMonth(last,d),pays,log,credit:0,sent:false};
+}
+let S=[
+make('Sita Gurung','9800000001','9800000101','101-A',12000,2083,1,9,12,'paid'),
+make('Bibek Thapa','9800000002','9800000102','204-B',10500,2083,3,15,6,'late1'),
+make('Anisha Poudel','9800000003','9800000103','102-A',12000,2082,11,20,12,'part'),
+make('Roshan Tamang','9800000004','9800000104','205-A',9500,2083,5,2,12,'late2'),
+make('Kabita Adhikari','9800000005','9800000105','103-B',14000,2083,2,23,12,'today'),
+make('Suman Shrestha','9800000006','9800000106','206-A',10500,2083,4,25,6,'paid'),
+make('Pooja Karki','9800000007','9800000107','101-B',12000,2083,6,26,3,'paid'),
+make('Nabin Magar','9800000008','9800000108','207-B',9500,2082,8,5,12,'paid'),
+make('Rina Rai','9800000009','9800000109','104-A',12000,2083,1,30,12,'paid'),
+make('Dipesh KC','9800000010','9800000110','208-A',10500,2083,7,3,6,'paid')];
+let BEDS=['101-A','101-B','102-A','102-B','103-A','103-B','104-A','204-A','204-B','205-A','206-A','207-A','207-B','208-A'];
+let cfg={name:'Hamro Hostel',billing:'join',billDay:1,soonDays:3,endSoon:60,defaultFee:12000,
+ mods:{msgs:true,cal:true,rooms:true,expenses:false,deposit:true},
+ pay:{cash:true,esewa:true,khalti:true,bank:true},
+ fields:{gd:true,college:false,address:false},custom:[],
+ tpl:{en:{soon:'Namaste {name}, your hostel fee of {amount} is due on {date}. Thank you, {hostel}.',today:'Namaste {name}, your hostel fee of {amount} is due today. Thank you, {hostel}.',late:'Namaste {name}, your hostel fee of {amount} has been left to pay since {date}. Please pay soon. Thank you, {hostel}.'},
+ ne:{soon:'नमस्ते {name}, तपाईंको होस्टल शुल्क {amount} {date} मा तिर्नुपर्ने छ। धन्यवाद, {hostel}।',today:'नमस्ते {name}, तपाईंको होस्टल शुल्क {amount} आज तिर्नुपर्ने छ। धन्यवाद, {hostel}।',late:'नमस्ते {name}, तपाईंको होस्टल शुल्क {amount} {date} देखि बाँकी छ। कृपया चाँडै तिरिदिनुहोला। धन्यवाद, {hostel}।'}}};
+let EXP=[{d:TODAY-1,what:'Electricity',a:12000},{d:TODAY-3,what:'Food and groceries',a:18000},{d:TODAY-8,what:'Internet',a:2500}];
+function jdOf(s){return cfg.billing==='fixed'?cfg.billDay:s.jd}
+I.cal='<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
+I.bed='<svg viewBox="0 0 24 24"><path d="M3 19v-13M3 15h18v4M21 15v-3a3 3 0 0 0-3-3H10v6"/><circle cx="6.5" cy="11" r="1.6"/></svg>';
+I.next='<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
+let calY=2083,calM=7,calSel=TODAY,roomF='all',bookBed=null;
+
+function status(s){
+  if(s.left>0)return s.lateSince<TODAY?'late':'today';
+  return s.nextDue-TODAY<=cfg.soonDays?'soon':'paid';
+}
+const ORDER={late:0,today:1,soon:2,paid:3};
+const elapsed=s=>{let n=0,p=s.join;for(;;){const x=addMonth(p,s.jd);if(x>TODAY||x===p)break;n++;p=x}return n};
+const mLeft=s=>s.months-elapsed(s);
+const endIdx=s=>{let p=s.join;for(let i=0;i<s.months;i++)p=addMonth(p,s.jd);return p};
+const meter=(pct,cls,label)=>`<span class="meter ${cls}" role="img" aria-label="${esc(label)}"><i style="width:${Math.round(Math.max(0,Math.min(100,pct)))}%"></i></span>`;
+function dueMeter(s){
+  const st=status(s);
+  if(st==='late')return meter(100,'late',t('late'));
+  if(st==='today')return meter(100,'soon',t('dueToday'));
+  const days=s.nextDue-TODAY;
+  return meter(Math.max(5,(30-days)/30*100),st==='soon'?'soon':'ok',t('daysLeft',days));
+}
+const stayDays=s=>endIdx(s)-TODAY;
+const isEnding=s=>stayDays(s)<=cfg.endSoon;
+const stayText=s=>(isEnding(s)?t('daysLeft',Math.max(stayDays(s),0)):t('monthsLeft',mLeft(s))).replace(/\d+/g,num);
+function stayMeter(s){
+  const total=Math.max(endIdx(s)-s.join,1);
+  return meter(Math.max(5,(TODAY-s.join)/total*100),isEnding(s)?'soon':'stay',stayText(s));
+}
+function dueCell(s){
+  const st=status(s);
+  if(st==='late'){const n=TODAY-s.lateSince;return`${fmtS(s.lateSince)}<br><span class="tag late">${t('daysLate',n).replace(/\d+/g,num)}</span>${dueMeter(s)}`}
+  if(st==='today')return`${fmtS(TODAY)}<br><span class="tag soon">${t('dueToday')}</span>${dueMeter(s)}`;
+  if(st==='soon')return`${fmtS(s.nextDue)}<br><span class="tag soon">${t('inDays',s.nextDue-TODAY).replace(/\d+/g,num)}</span>${dueMeter(s)}`;
+  return`${fmtS(s.nextDue)}<br><span class="tag ok">${t('paidDays',s.nextDue-TODAY).replace(/\d+/g,num)}</span>${dueMeter(s)}`;
+}
+const queue=()=>S.filter(s=>status(s)!=='paid').sort((a,b)=>ORDER[status(a)]-ORDER[status(b)]);
+
+let view='list',filter='topay',q='',cur=null,wa={id:null,step:'ready'},payState=null,stay=12;
+const app=document.getElementById('app');
+
+function renderNav(){
+  const pend=queue().filter(s=>!s.sent).length;
+  const on=activeNav(),m=cfg.mods;
+  const item=(v,icon,label,extra='')=>`<button type="button" class="nav" data-act="go" data-v="${v}" ${on===v?'aria-current="page"':''}>${icon}${label}${extra}</button>`;
+  document.getElementById('nav').innerHTML=
+   item('list',I.grid,t('dashboard'))+
+   item('people',I.people,t('students'))+
+   (m.msgs?item('msgs',I.msg,t('messages'),pend?`<span class="badge">${num(pend)}</span>`:''):'')+
+   (m.cal?item('cal',I.cal,t('calendar')):'')+
+   (m.rooms?item('rooms',I.bed,t('rooms')):'')+
+   (m.expenses?item('expenses',I.cash,t('expenses')):'')+
+   item('settings',I.gear,t('settings'));
+}
+function renderRows(){
+  const f=q.trim().toLowerCase();
+  const list=S.filter(s=>{const st=status(s);
+    if(filter==='topay'&&st==='paid')return false;
+    if(filter==='late'&&st!=='late')return false;
+    if(filter==='soon'&&!(st==='soon'||st==='today'))return false;
+    if(filter==='paid'&&st!=='paid')return false;
+    return !f||s.name.toLowerCase().includes(f)||s.room.toLowerCase().includes(f)}).sort((a,b)=>ORDER[status(a)]-ORDER[status(b)]);
+  const body=list.map(s=>{
+    const st=status(s),lp=s.pays[0],ml=mLeft(s);
+    const leftTxt=s.left?`<span class="left ${st==='late'?'is-late':''}">${rs(s.left)}</span>${s.left<s.fee?`<span class="sub">${t('partPaid')}</span>${meter((s.fee-s.left)/s.fee*100,'ok',t('partPaid'))}`:''}`:s.credit?`<span class="sub">${t('adv')} ${rs(s.credit)}</span>`:`<span class="sub">${t('none')}</span>`;
+    return`<div class="row">
+    <button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face ${st}">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub ${isEnding(s)?'warn':''}">${t('room')} ${num(esc(s.room))} · ${stayText(s)}</span></span></button>
+    <div class="cell" data-l="${t('cFee')}">${rs(s.fee)}</div>
+    <div class="cell" data-l="${t('cLast')}">${lp?`${fmtS(lp.d)}<span class="sub">${rs(lp.a)}</span>`:`<span class="sub">${t('notYet')}</span>`}</div>
+    <div class="cell" data-l="${t('cLeft')}">${leftTxt}</div>
+    <div class="cell" data-l="${t('cNext')}">${dueCell(s)}</div>
+    <div class="acts"><button type="button" class="btn pri" data-act="pay" data-id="${s.id}">${I.cash}${t('got')}</button><button type="button" class="btn wa" data-act="wa" data-id="${s.id}" aria-label="WhatsApp ${esc(s.name)}" ${st==='paid'||!cfg.mods.msgs?'disabled':''}>${I.msg}</button></div>
+    </div>`}).join('');
+  document.getElementById('rows').innerHTML=`<div class="row head"><div>${t('cStudent')}</div><div>${t('cFee')}</div><div>${t('cLast')}</div><div>${t('cLeft')}</div><div>${t('cNext')}</div><div></div></div>`+(body||`<div class="empty">${t('noMatch')}</div>`);
+}
+function renderList(){
+  const pick=k=>S.filter(s=>{const st=status(s);return k==='topay'?st!=='paid':k==='soon'?st==='soon'||st==='today':st===k});
+  const owed=l=>l.reduce((x,s)=>x+(s.left||Math.max(s.fee-s.credit,0)),0);
+  const allLeft=S.reduce((x,s)=>x+s.left,0);
+  const card=(k,cls,lab,sub)=>`<button type="button" class="stat ${cls}" data-act="filter" data-v="${k}" aria-pressed="${filter===k}"><span class="lab">${lab}</span><span class="n">${num(pick(k).length)}</span><span class="s">${sub}</span></button>`;
+  app.innerHTML=`<div><button type="button" class="btn sec" style="background:var(--panel)" data-act="go" data-v="list">${I.back}${t('back')}</button></div><div class="cards">
+  ${card('topay','c-all',t('toPay'),t('subLeft',rs(allLeft)))}
+  ${card('late','c-late',t('late'),t('subLeft',rs(owed(pick('late')))))}
+  ${card('soon','c-soon',t('soon'),t('subSoon',rs(owed(pick('soon')))))}
+  ${card('paid','c-ok',t('paid'),t('none'))}
+  </div>
+  <input class="search" id="search" type="search" aria-label="${t('search')}" placeholder="${t('search')}" value="${esc(q)}">
+  <div class="book" id="rows"></div>`;
+  renderRows();
+}
+function msgFor(s){
+  const st=status(s),k=st==='late'?'late':st==='today'?'today':'soon';
+  const vals={name:s.name,amount:rs(s.left||Math.max(s.fee-s.credit,0)),date:fmt(st==='late'?s.lateSince:st==='today'?TODAY:s.nextDue),hostel:cfg.name};
+  return fillTpl(cfg.tpl[lang][k],vals);
+}
+function renderMsgs(){
+  const all=queue(),pend=all.filter(s=>!s.sent);
+  if(!all.find(s=>s.id===wa.id)||(all.find(s=>s.id===wa.id).sent&&pend.length)){wa.id=pend[0]?.id??null;wa.step='ready'}
+  const s=S.find(x=>x.id===wa.id);
+  const queueHtml=all.map(x=>{const st=status(x);return`<button type="button" class="q ${x.sent?'done':''}" data-act="pick" data-id="${x.id}" aria-current="${x.id===wa.id}"><span class="face ${st}">${esc(initials(x.name))}</span><span style="min-width:0"><span class="name" style="text-decoration:none">${esc(x.name)}</span><span class="sub">${rs(x.left||x.fee)}</span></span><span class="end">${x.sent?`<span class="tag ok">${t('sentTag')}</span>`:`<span class="tag ${st==='late'?'late':'soon'}">${t(st==='late'?'late':'soon')}</span>`}</span></button>`}).join('');
+  const right=!pend.length&&(!s||s.sent)?`<div class="ask">${t('qDone')}</div>`:s?`<h2>${t('msgTo')}: ${esc(s.name)}</h2><span class="sub">${t('testTo')}</span><div class="bubble">${esc(msgFor(s))}</div>`+
+   (wa.step==='ready'?`<a class="btn wa big" href="${waLink(msgFor(s))}" target="_blank" rel="noopener" data-act="waopen">${I.msg}${t('open')}</a><span class="sub">${t('demo')}</span>`:`<div class="ask">${t('sentQ')}</div><div class="row2"><button type="button" class="btn wa big" data-act="wayes">${t('yes')}</button><button type="button" class="btn sec big" data-act="wano">${t('no')}</button></div>`):'';
+  app.innerHTML=`<p class="headline">${pend.length?t('qTitle',pend.length).replace(/\d+/g,num):t('qDone')}</p><div class="two"><div class="card" style="gap:4px">${queueHtml||`<div class="empty">${t('qDone')}</div>`}</div><div class="card">${right}</div></div>`;
+}
+function renderOne(){
+  const s=byId(cur);if(!s){view='list';return render()}
+  const past=!!s.leftOn,st=status(s),ml=mLeft(s);
+  const lines=s.pays.length?s.pays.map((p,i)=>`<div class="line"><span><b>${rs(p.a)}</b> &nbsp;${t(p.h)}</span><span>${fmt(p.d)}<button type="button" class="mini" data-act="receipt" data-id="${s.id}" data-v="${i}">${t('receipt')}</button></span></div>`).join(''):`<span class="sub">${t('noPay')}</span>`;
+  const logs=s.log.slice().sort((a,b)=>b.d-a.d).map(l=>`<div class="line"><span>${l.k==='lPaid'?t('lPaid',rs(l.a),t(l.h)):l.k==='lSettle'?t('lSettle',rs(l.a),rs(l.b)):t(l.k)}</span><span>${fmt(l.d)}</span></div>`).join('');
+  const leftCls=!s.left?'c-ok':st==='late'||past?'c-late':'c-soon';
+  const payBtn=`<button type="button" class="btn pri big" data-act="pay" data-id="${s.id}">${I.cash}${t('got')}</button>`;
+  const acts=past?(s.left?payBtn:''):payBtn+(st!=='paid'&&cfg.mods.msgs?`<button type="button" class="btn wa big" data-act="wa" data-id="${s.id}">${I.msg}WhatsApp</button>`:'')+`<button type="button" class="btn sec big" data-act="finish" data-id="${s.id}">${I.flag}${t('finish')}</button>`;
+  app.innerHTML=`<div><button type="button" class="btn sec" data-act="go" data-v="${backTo}">${I.back}${t('back')}</button></div>
+  <div class="card"><div class="hero"><span class="face ${past?'':st}">${esc(initials(s.name))}</span><div style="min-width:0"><h2>${esc(s.name)}</h2><span class="sub">${t('room')} ${num(esc(s.room))}${past?' · '+t('pastTag'):''}</span></div>
+  <div class="acts">${acts}</div></div>
+  <div class="tri">
+   <div class="stat ${leftCls}"><span class="lab">${t('cLeft')}</span><span class="n">${s.left?rs(s.left):t('none')}</span>${s.left&&s.left<s.fee?meter((s.fee-s.left)/s.fee*100,'ok',t('partPaid')):''}</div>
+   <div class="stat c-all"><span class="lab">${past?t('leftOn'):t('cNext')}</span><span class="n">${past?fmtS(s.leftOn):fmtS(s.left?s.lateSince:s.nextDue)}</span>${past?'':dueMeter(s)}</div>
+   <div class="stat ${!past&&isEnding(s)?'c-soon':'c-all'}"><span class="lab">${past?t('stayedH'):t('cStay')}</span><span class="n">${past?t('stayed',s.stayed).replace(/\d+/g,num):stayText(s)}</span>${past?'':stayMeter(s)}</div>
+  </div>
+  <div class="facts">
+   <div class="fact"><b>${rs(s.fee)}</b><span>${t('cFee')}</span></div>
+   <div class="fact"><b>${fmt(s.join)}</b><span>${t('joined')}</span></div>
+   ${past?'':`<div class="fact"><b>${fmt(endIdx(s))}</b><span>${t('ends')}</span></div>`}
+   <div class="fact"><b>${num(esc(s.ph))}</b><span>${t('phone')}</span></div>
+   ${cfg.fields.gd?`<div class="fact"><b>${num(esc(s.gd))}</b><span>${t('guardian')}</span></div>`:''}
+   ${cfg.mods.deposit&&s.dep?`<div class="fact"><b>${rs(s.dep)}</b><span>${t('deposit')}</span></div>`:''}
+   ${Object.entries(s.extra||{}).filter(([,v])=>v).map(([k,v])=>`<div class="fact"><b>${esc(v)}</b><span>${esc(k)}</span></div>`).join('')}
+  </div></div>
+  <div class="two"><div class="card" style="gap:0"><h2 style="margin-bottom:8px">${t('payments')}</h2>${lines}</div><div class="card" style="gap:0"><h2 style="margin-bottom:8px">${t('history')}</h2>${logs}</div></div>
+  <div><button type="button" class="btn del" data-act="delete" data-id="${s.id}">${I.trash}${t('del')}</button></div>`;
+}
+function renderAdd(){
+  const[y,m,d]=fromIdx(TODAY);
+  app.innerHTML=`<div><button type="button" class="btn sec" style="background:var(--panel)" data-act="go" data-v="${bookBed?'rooms':'people'}">${I.back}${t('back')}</button></div><div class="card"><form class="f" id="addf" novalidate>
+  <label class="fld">${t('fName')}<input id="a-name" autocomplete="off"></label>
+  <label class="fld">${t('fPhone')}<input id="a-ph" inputmode="numeric" maxlength="10"></label>
+  ${cfg.fields.gd?`<label class="fld">${t('fGuard')}<input id="a-gd" inputmode="numeric" maxlength="10"></label>`:''}
+  <label class="fld">${t('fRoom')}<select id="a-room">${freeBeds().map(r=>`<option ${r===bookBed?'selected':''}>${r}</option>`).join('')}</select></label>
+  <label class="fld">${t('fFee')}<input id="a-fee" inputmode="numeric" value="${cfg.defaultFee}"></label>
+  ${cfg.mods.deposit?`<label class="fld">${t('fDeposit')}<input id="a-dep" inputmode="numeric" value="5000"></label>`:''}
+  ${cfg.fields.college?`<label class="fld">${t('fCollege')}<input id="a-college"></label>`:''}
+  ${cfg.fields.address?`<label class="fld">${t('fAddress')}<input id="a-address"></label>`:''}
+  ${cfg.custom.map((c,i)=>`<label class="fld">${esc(c)}<input id="a-c${i}"></label>`).join('')}
+  <div class="fld" style="display:grid;gap:4px;font-weight:600"><span id="dl">${t('fDate')}</span><div class="date3" role="group" aria-labelledby="dl">
+    <select id="a-d" aria-label="Day">${Array.from({length:32},(_,i)=>`<option value="${i+1}" ${i+1===d?'selected':''}>${num(i+1)}</option>`).join('')}</select>
+    <select id="a-m" aria-label="Month">${MN[lang].map((n,i)=>`<option value="${i+1}" ${i+1===m?'selected':''}>${n}</option>`).join('')}</select>
+    <select id="a-y" aria-label="Year">${[2082,2083].map(v=>`<option value="${v}" ${v===y?'selected':''}>${num(v)}</option>`).join('')}</select>
+  </div></div>
+  <div class="fld" style="display:grid;gap:4px;font-weight:600;grid-column:1/-1"><span>${t('fStay')}</span><div class="chips">${[3,6,9,12].map(v=>`<button type="button" class="chip" data-act="stay" data-v="${v}" aria-pressed="${stay===v}">${t('months',v).replace(/\d+/g,num)}</button>`).join('')}</div></div>
+  <div class="err" id="a-err" role="alert" style="grid-column:1/-1"></div>
+  <div style="grid-column:1/-1"><button class="btn pri big" type="submit">${t('saveS')}</button></div></form></div>`;
+}
+function dueKind(s,d){
+  if(s.left>0&&d>=s.lateSince&&d<=TODAY)return d<TODAY?'late':'today';
+  if(d<=TODAY||d<s.nextDue)return'paid';
+  return'coming';
+}
+function monthEvents(y,m){
+  const ev=[];
+  S.forEach(s=>{
+    let p=s.join;
+    for(let i=0;i<s.months;i++){
+      const[a,b]=fromIdx(p);
+      if(a===y&&b===m)ev.push({d:p,s,k:dueKind(s,p)});
+      const n=addMonth(p,jdOf(s));if(n===p)break;p=n;
+    }
+    const e=endIdx(s),[a,b]=fromIdx(e);
+    if(a===y&&b===m)ev.push({d:e,s,k:'end'});
+  });
+  return ev;
+}
+const EV_RANK={late:0,today:1,coming:2,end:3,paid:4};
+const EV_CLS={late:'c-late',today:'c-soon',coming:'c-soon',end:'c-all',paid:'c-ok'};
+const adDate=i=>new Date(Date.UTC(2026,10,9+(i-TODAY)));
+function renderCal(){
+  const first=toIdx(calY,calM,1),len=ML[calY][calM-1],blanks=((1+(first-TODAY))%7+7)%7;
+  const ev=monthEvents(calY,calM).sort((a,b)=>EV_RANK[a.k]-EV_RANK[b.k]);
+  const short=d=>d.toLocaleString('en',{month:'short',timeZone:'UTC'});
+  const a1=adDate(first),a2=adDate(first+len-1);
+  const cells=Array.from({length:blanks},()=>'<div></div>').join('')+Array.from({length:len},(_,n)=>{
+    const i=first+n,day=ev.filter(e=>e.d===i),show=day.slice(0,3),extra=day.length-show.length;
+    return`<button type="button" class="day ${i===TODAY?'now':''}" data-act="day" data-v="${i}" aria-pressed="${i===calSel}" aria-label="${fmt(i)}"><span class="top2"><span class="d">${num(n+1)}</span><span class="ad">${adDate(i).getUTCDate()}</span></span>${show.map(e=>`<span class="ev ${EV_CLS[e.k]}">${esc(e.s.name.split(' ')[0])}</span>`).join('')}${extra>0?`<span class="more">+${num(extra)}</span>`:''}</button>`}).join('');
+  const sel=ev.filter(e=>e.d===calSel);
+  const tagOf=e=>e.k==='late'?`<span class="tag late">${t('late')}</span>`:e.k==='today'?`<span class="tag soon">${t('dueToday')}</span>`:e.k==='coming'?`<span class="tag soon">${t('lDue')}</span>`:e.k==='paid'?`<span class="tag ok">${t('paid')}</span>`:`<span class="tag" style="background:var(--c-all)">${t('lEnd')}</span>`;
+  const faceOf={late:'late',today:'soon',coming:'soon',paid:'paid',end:''};
+  const detail=sel.length?sel.map(e=>{
+    const s=e.s,amt=e.k==='late'?s.left:s.fee,canPay=e.k==='late'||e.k==='today'||e.k==='coming';
+    return`<div class="dl"><button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face ${faceOf[e.k]}">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))}</span></span></button><div class="tagrow">${tagOf(e)}${e.k==='end'?'':`<b>${rs(amt)}</b>`}</div>${canPay?`<button type="button" class="btn pri" data-act="pay" data-id="${s.id}">${I.cash}${t('got')}</button>`:''}</div>`}).join(''):`<div class="empty" style="padding:24px 8px">${t('nothing')}</div>`;
+  app.innerHTML=`<div class="calwrap"><div class="card">
+   <div class="calhead"><h2>${MN[lang][calM-1]} ${num(calY)}</h2><span class="sub">${short(a1)}${short(a1)===short(a2)?'':' – '+short(a2)} ${a2.getUTCFullYear()}</span>
+   <div class="calnav"><button type="button" class="btn sec" data-act="calmove" data-v="-1" aria-label="${t('prevM')}" ${calY===2082&&calM===1?'disabled':''}>${I.back}</button><button type="button" class="btn sec" data-act="caltoday">${t('today')}</button><button type="button" class="btn sec" data-act="calmove" data-v="1" aria-label="${t('nextM')}" ${calY===2084&&calM===12?'disabled':''}>${I.next}</button></div></div>
+   <div class="wk">${T[lang].wk.map(w=>`<div>${w}</div>`).join('')}</div>
+   <div class="days">${cells}</div>
+   <div class="legend"><span><i class="c-late"></i>${t('late')}</span><span><i class="c-soon"></i>${t('lDue')}</span><span><i class="c-ok"></i>${t('paid')}</span><span><i class="c-all"></i>${t('lEnd')}</span></div>
+  </div>
+  <div class="card" style="gap:10px"><h2>${fmt(calSel)}</h2>${detail}</div></div>`;
+}
+function bedList(){
+  return BEDS.map(id=>{const s=S.find(x=>x.room===id);if(!s)return{id,k:'empty'};const e=endIdx(s);return{id,s,e,k:e-TODAY<=cfg.endSoon?'ending':'occ'}});
+}
+const freeBeds=()=>bedList().filter(b=>b.k==='empty').map(b=>b.id);
+function renderRooms(){
+  const all=bedList(),n=k=>all.filter(b=>b.k===k).length;
+  const stat=(k,cls,lab,val,sub)=>`<button type="button" class="stat ${cls}" data-act="roomf" data-v="${k}" aria-pressed="${roomF===k}"><span class="lab">${lab}</span><span class="n">${num(val)}</span><span class="s">${sub}</span></button>`;
+  const vis=b=>roomF==='all'||(roomF==='occ'&&b.k!=='empty')||roomF===b.k;
+  const rooms=[...new Set(all.map(b=>b.id.split('-')[0]))];
+  const floors=[...new Set(rooms.map(r=>r[0]))];
+  const bedHtml=b=>{
+    const label=`${t('bed')} ${b.id.split('-')[1]}`;
+    if(b.k==='empty')return`<button type="button" class="bed c-ok" data-act="book" data-v="${b.id}"><span><b>${label}</b><span class="sub">${t('emptyB')}</span></span><span class="go">${t('book')}</span></button>`;
+    return`<button type="button" class="bed ${b.k==='ending'?'c-soon':'c-all'}" data-act="open" data-id="${b.s.id}"><span style="min-width:0;flex:1"><b>${esc(b.s.name)}</b><span class="sub">${b.k==='ending'?t('freeFrom',fmtS(b.e)):label+' · '+stayText(b.s)}</span>${stayMeter(b.s)}</span></button>`;
+  };
+  const body=floors.map(f=>{
+    const cards=rooms.filter(r=>r[0]===f).map(r=>{
+      const bs=all.filter(b=>b.id.startsWith(r+'-')),shown=bs.filter(vis);
+      if(!shown.length)return'';
+      const used=bs.filter(b=>b.k!=='empty').length;
+      return`<div class="room"><div class="rt"><h3>${t('room')} ${num(r)}</h3><span class="sub">${t('fullOf',num(used),num(bs.length))}</span></div>${shown.map(bedHtml).join('')}</div>`}).join('');
+    return cards?`<p class="floor">${t('floor',num(f))}</p><div class="roomgrid">${cards}</div>`:'';
+  }).join('');
+  app.innerHTML=`<div class="cards">
+  ${stat('all','c-all',t('allBeds'),all.length,t('subBeds',num(rooms.length)))}
+  ${stat('occ','c-all',t('occupied'),all.length-n('empty'),t('subOcc'))}
+  ${stat('empty','c-ok',t('emptyB'),n('empty'),t('subEmpty'))}
+  ${stat('ending','c-soon',t('ending'),n('ending'),t('subEnding',num(cfg.endSoon)))}
+  </div>${body}`;
+}
+let backTo='list',peopleSort='due',pq='',askState=null;
+const TITLES={dues:'dueList',pays:'allPays',settings:'settings',expenses:'expenses',list:'dashboard',people:'students',past:'pastH',msgs:'messages',add:'add',cal:'calendar',rooms:'rooms'};
+const activeNav=()=>{const v=view==='one'?backTo:view;return v==='past'||v==='add'?'people':v==='dues'||v==='pays'?'list':v};
+function byId(id){return S.find(x=>x.id===id)||PAST.find(x=>x.id===id)}
+I.grid='<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>';
+I.people='<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.8 3.1-6 6.5-6s5.9 2.2 6.5 6M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.5c2 .8 3.2 2.7 3.5 5.5"/></svg>';
+I.trash='<svg viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></svg>';
+I.flag='<svg viewBox="0 0 24 24"><path d="M5 21V4M5 4.5h12l-2.5 4 2.5 4H5"/></svg>';
+I.clock='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
+function makePast(name,ph,room,fee,jy,jm,jd,ly,lm,ld,owe){
+  const join=toIdx(jy,jm,jd),leftOn=toIdx(ly,lm,ld),ds=[join];let p=join;
+  for(;;){const n=addMonth(p,jd);if(n>leftOn||n===p)break;ds.push(n);p=n}
+  const pays=ds.slice(-3).reverse().map((d,i)=>({d:d+1,a:i===0&&owe?fee-owe:fee,h:'cash'}));
+  const log=[{d:join,k:'lJoin'},...pays.slice().reverse().map(x=>({d:x.d,k:'lPaid',a:x.a,h:x.h})),{d:leftOn,k:'lLeft'}];
+  return{id:nextId++,name,ph,gd:ph,room,fee,join,jd,months:ds.length,stayed:ds.length,left:owe,lateSince:owe?leftOn:null,nextDue:leftOn,pays,log,credit:0,sent:false,leftOn};
+}
+let PAST=[
+makePast('Manisha Sapkota','9800000011','103-A',14000,2083,1,18,2083,6,25,0),
+makePast('Aarav Bhandari','9800000012','207-A',10500,2082,10,4,2083,5,20,6000),
+makePast('Sunita Lama','9800000013','102-B',12000,2082,6,10,2083,3,12,0)];
+const dueKey=s=>s.left?s.lateSince:s.nextDue;
+function renderPeopleRows(){
+  const f=pq.trim().toLowerCase();
+  const list=S.filter(s=>!f||s.name.toLowerCase().includes(f)||s.room.toLowerCase().includes(f));
+  list.sort(peopleSort==='name'?(a,b)=>a.name.localeCompare(b.name):peopleSort==='join'?(a,b)=>b.join-a.join:(a,b)=>dueKey(a)-dueKey(b));
+  const body=list.map(s=>{
+    const st=status(s),ml=mLeft(s);
+    return`<div class="row p">
+    <button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face ${st}">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))}</span></span></button>
+    <div class="cell" data-l="${t('joined')}">${fmt(s.join)}</div>
+    <div class="cell" data-l="${t('cNext')}">${dueCell(s)}</div>
+    <div class="cell" data-l="${t('cLeft')}">${s.left?`<span class="left ${st==='late'?'is-late':''}">${rs(s.left)}</span>`:`<span class="sub">${t('none')}</span>`}</div>
+    <div class="cell" data-l="${t('cStay')}"><span class="${isEnding(s)?'tag soon':''}">${stayText(s)}</span>${stayMeter(s)}</div>
+    <div class="acts"><button type="button" class="btn sec" data-act="finish" data-id="${s.id}">${I.flag}${t('finish')}</button></div>
+    </div>`}).join('');
+  document.getElementById('prows').innerHTML=`<div class="row p head"><div>${t('cStudent')}</div><div>${t('joined')}</div><div>${t('cNext')}</div><div>${t('cLeft')}</div><div>${t('cStay')}</div><div></div></div>`+(body||`<div class="empty">${t('noMatch')}</div>`);
+}
+function renderPeople(){
+  app.innerHTML=`<div class="bar"><input class="search" id="psearch" type="search" aria-label="${t('search')}" placeholder="${t('search')}" value="${esc(pq)}">
+   <button type="button" class="btn pri" style="flex:none" data-act="go" data-v="add">${I.plus}${t('add')}</button>
+   <button type="button" class="btn sec" style="background:var(--panel)" data-act="go" data-v="past">${I.clock}${t('pastH')} (${num(PAST.length)})</button></div>
+  <div class="sortrow"><span>${t('sortBy')}</span>${[['due','sDue'],['join','sJoin'],['name','sName']].map(([k,l])=>`<button type="button" class="chip" data-act="psort" data-v="${k}" aria-pressed="${peopleSort===k}">${t(l)}</button>`).join('')}</div>
+  <div class="book" id="prows"></div>`;
+  renderPeopleRows();
+}
+function renderPast(){
+  const list=PAST.slice().sort((a,b)=>b.leftOn-a.leftOn);
+  const body=list.map(s=>`<div class="row p">
+    <button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))}</span></span></button>
+    <div class="cell" data-l="${t('joined')}">${fmt(s.join)}</div>
+    <div class="cell" data-l="${t('leftOn')}">${fmt(s.leftOn)}</div>
+    <div class="cell" data-l="${t('cLeft')}">${s.left?`<span class="left is-late">${rs(s.left)}</span>`:`<span class="sub">${t('none')}</span>`}</div>
+    <div class="cell" data-l="${t('stayedH')}">${t('stayed',s.stayed).replace(/\d+/g,num)}</div>
+    <div></div>
+    </div>`).join('');
+  app.innerHTML=`<div><button type="button" class="btn sec" style="background:var(--panel)" data-act="go" data-v="people">${I.back}${t('back')}</button></div>
+  <div class="book"><div class="row p head"><div>${t('cStudent')}</div><div>${t('joined')}</div><div>${t('leftOn')}</div><div>${t('cLeft')}</div><div>${t('stayedH')}</div><div></div></div>${body||`<div class="empty">${t('noPast')}</div>`}</div>`;
+}
+const askDlg=document.getElementById('ask');
+function openAsk(type,s){
+  askState={type,id:s.id};
+  const finish=type==='finish';
+  askDlg.innerHTML=`<div class="dlg"><h2>${finish?t('askFinishT',esc(s.name)):t('askDelT',esc(s.name))}</h2>
+  <p>${finish?t('askFinishB',num(esc(s.room))):t('askDelB')}</p>
+  ${finish?settleHtml(s):''}
+  <div class="row2"><button type="button" class="btn ${finish?'pri':'del'} big" data-act="askyes">${finish?t('yesFinish'):t('yesDel')}</button><button type="button" class="btn sec big" data-act="askno" autofocus>${t('noBack')}</button></div></div>`;
+  askDlg.showModal();
+}
+function doFinish(s){
+  const i=S.indexOf(s);
+  const snapF=JSON.stringify(s);
+  S.splice(i,1);s.leftOn=TODAY;s.stayed=elapsed(s);
+  if(cfg.mods.deposit&&s.dep){const used=Math.min(s.dep,s.left),back=s.dep-used;s.left-=used;if(!s.left)s.lateSince=null;s.log.push({d:TODAY,k:'lSettle',a:used,b:back});s.dep=0}
+  s.log.push({d:TODAY,k:'lLeft'});PAST.unshift(s);
+  if(view==='one')view='people';
+  render();
+  toast(t('finished',s.name),()=>{PAST=PAST.filter(x=>x!==s);S.splice(i,0,JSON.parse(snapF));render()});
+}
+function doDelete(s){
+  const arr=S.includes(s)?S:PAST,i=arr.indexOf(s);
+  arr.splice(i,1);
+  if(view==='one')view=s.leftOn?'past':'people';
+  render();
+  toast(t('deleted',s.name),()=>{arr.splice(i,0,s);render()});
+}
+S.forEach(s=>{s.dep=5000});
+I.gear='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"/></svg>';
+function applyBilling(){
+  S.forEach(s=>{const jd=jdOf(s);let p=s.join;for(;;){const n=addMonth(p,jd);if(n===p||n>TODAY){s.nextDue=n;break}p=n}});
+}
+function settleHtml(s){
+  if(!(cfg.mods.deposit&&s.dep))return s.left?`<p class="owe">${t('askOwe',rs(s.left))}</p>`:'';
+  const net=s.dep-s.left;
+  return`<div class="settle"><div><span>${t('cLeft')}</span><span>${rs(s.left)}</span></div><div><span>${t('deposit')}</span><span>${rs(s.dep)}</span></div><div class="res"><span>${net>0?t('giveBack',rs(net)):net<0?t('stillOwes',rs(-net)):t('settleZero')}</span></div></div>`;
+}
+function openReceipt(s,i){
+  const p=s.pays[i];askState=null;
+  askDlg.innerHTML=`<div class="dlg"><h2>${esc(cfg.name)}</h2><div class="rc">
+   <div><span>${t('rcNo')}</span><b>R-${num(s.id*100+s.pays.length-i)}</b></div>
+   <div><span>${t('cStudent')}</span><b>${esc(s.name)}</b></div>
+   <div><span>${t('room')}</span><b>${num(esc(s.room))}</b></div>
+   <div><span>${t('rcDate')}</span><b>${fmt(p.d)}</b></div>
+   <div><span>${t('rcHow')}</span><b>${t(p.h)}</b></div>
+   <div><span>${t('rcAmt')}</span><b class="big2">${rs(p.a)}</b></div>
+   <div><span>${t('rcLeft')}</span><b>${rs(s.left)}</b></div></div>
+   <div class="row2">${cfg.mods.msgs?`<a class="btn wa big" href="${waLink(rcText(s,i))}" target="_blank" rel="noopener" data-act="rcsend">${I.msg}${t('rcSend')}</a>`:''}<button type="button" class="btn sec big" data-act="askno" autofocus>${t('close')}</button></div></div>`;
+  askDlg.showModal();
+}
+function renderExpenses(){
+  const[y,m]=fromIdx(TODAY),same=d=>{const[a,b]=fromIdx(d);return a===y&&b===m};
+  const inn=[...S,...PAST].flatMap(s=>s.pays).filter(p=>same(p.d)).reduce((x,p)=>x+p.a,0);
+  const out=EXP.filter(e=>same(e.d)).reduce((x,e)=>x+e.a,0);
+  const rows=EXP.slice().sort((a,b)=>b.d-a.d).map(e=>`<div class="line"><span><b>${rs(e.a)}</b> &nbsp;${esc(e.what)}</span><span>${fmt(e.d)}</span></div>`).join('');
+  app.innerHTML=`<div class="tri"><div class="stat c-ok"><span class="lab">${t('collected')}</span><span class="n">${rs(inn)}</span></div><div class="stat c-late"><span class="lab">${t('spent')}</span><span class="n">${rs(out)}</span></div><div class="stat c-all"><span class="lab">${t('remain')}</span><span class="n">${rs(inn-out)}</span></div></div>
+  <div class="two"><div class="card"><div class="quick">${T[lang].expChips.map(c=>`<button type="button" class="chip" data-act="expq" data-v="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+   <label class="fld">${t('expWhat')}<input id="e-what" autocomplete="off"></label><label class="fld">${t('expAmt')}<input id="e-amt" inputmode="numeric"></label><div class="err" id="e-err" role="alert"></div><button type="button" class="btn pri big" data-act="expadd">${t('expAdd')}</button></div>
+  <div class="card" style="gap:0">${rows}</div></div>`;
+}
+let setOpen='fees',msgKey='soon',setRoom=null;
+const DEF_TPL=JSON.parse(JSON.stringify(cfg.tpl));
+I.home='<svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7M6 9.5V20h12V9.5M10 20v-6h4v6"/></svg>';
+I.bell='<svg viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15zM10 21h4"/></svg>';
+I.form='<svg viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 8.5h6M9 12.5h6M9 16.5h3"/></svg>';
+I.down='<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
+const TOKS=['name','amount','date','hostel'];
+const tokLabel=k=>t({name:'tokName',amount:'tokAmt',date:'tokDate',hostel:'tokHostel'}[k]);
+const toFriendly=s=>s.replace(/\{(name|amount|date|hostel)\}/g,(m,k)=>`[${tokLabel(k)}]`);
+function fromFriendly(s){TOKS.forEach(k=>{s=s.split(`[${tokLabel(k)}]`).join(`{${k}}`)});return s}
+const fillTpl=(s,v)=>s.replace(/\{(\w+)\}/g,(m,x)=>v[x]??m);
+function previewText(){return fillTpl(cfg.tpl[lang][msgKey],{name:'Sita Gurung',amount:rs(cfg.defaultFee),date:fmt(msgKey==='late'?TODAY-5:msgKey==='today'?TODAY:TODAY+3),hostel:cfg.name})}
+function renderSettings(){
+  const m=cfg.mods;
+  const sel=(key,val,opts,extra='')=>`<select data-set="${key}" aria-label="${key}" ${extra}>${opts.map(([v,l])=>`<option value="${esc(v)}" ${String(v)===String(val)?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
+  const row=(q,ctl,help='')=>`<div class="setrow"><div><div class="sq">${q}</div>${help?`<span class="sub">${help}</span>`:''}</div>${ctl}</div>`;
+  const tgl=(act,v,on,label)=>`<button type="button" class="tgl" data-act="${act}" data-v="${v}" aria-pressed="${!!on}"><span>${label}</span><span class="rgt"><span class="word">${t(on?'on':'off')}</span><span class="sw"></span></span></button>`;
+  const dg=(s)=>String(s).replace(/\d+/g,num);
+  const rooms=[...new Set(BEDS.map(b=>b.split('-')[0]))];
+  if(setRoom!=='__new'&&!rooms.includes(setRoom))setRoom=rooms[0]??'__new';
+  const onNames=[m.msgs&&t('messages'),m.cal&&t('calendar'),m.rooms&&t('rooms'),m.expenses&&t('expenses'),m.deposit&&t('mDep')].filter(Boolean).join(', ');
+  const payNames=Object.keys(cfg.pay).filter(k=>cfg.pay[k]).map(k=>k==='esewa'?'eSewa':k==='khalti'?'Khalti':t(k)).join(', ');
+  const formN=Object.values(cfg.fields).filter(Boolean).length+cfg.custom.length;
+  let roomBody;
+  if(setRoom==='__new'){
+    roomBody=row(t('qRoomNo'),`<input id="s-room" inputmode="numeric" autocomplete="off">`)+row(t('qBedsN'),`<select id="s-beds" aria-label="${t('qBedsN')}">${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${n===2?'selected':''}>${num(n)}</option>`).join('')}</select>`)+`<div class="err" id="s-err" role="alert"></div><div style="padding-top:6px"><button type="button" class="btn pri big" data-act="roomadd">${t('stAddRoom')}</button></div>`;
+  }else{
+    const beds=BEDS.filter(b=>b.startsWith(setRoom+'-')),used=beds.filter(b=>S.some(s=>s.room===b)).length;
+    roomBody=`<div class="bedbox">${beds.map(b=>{const st=S.find(s=>s.room===b);return`<span class="bchip ${st?'c-all':'c-ok'}">${t('bed')} ${b.split('-')[1]}${st?` · ${esc(st.name.split(' ')[0])}`:` · ${t('emptyB')}<button type="button" data-act="beddel" data-v="${b}" aria-label="${t('del')} ${b}">×</button>`}</span>`}).join('')}<button type="button" class="btn sec" data-act="bedadd" data-v="${setRoom}">+ ${t('stAddBed')}</button></div><span class="sub">${t('fullOf',num(used),num(beds.length))}</span>`;
+  }
+  const secs=[
+   ['hostel',I.home,'c-all',t('secHostel'),`${cfg.name} · ${lang==='ne'?'नेपाली':'English'}`,
+     row(t('qName'),`<input id="s-name" value="${esc(cfg.name)}" autocomplete="off">`,t('helpName'))+
+     row(t('qLang'),sel('lang',lang,[['en','English'],['ne','नेपाली']]))],
+   ['fees',I.cash,'c-soon',t('secFees'),`${cfg.billing==='join'?t('sumJoin'):dg(t('sumFixed',cfg.billDay))} · ${rs(cfg.defaultFee)}`,
+     row(t('qWhen'),sel('billing',cfg.billing,[['join',t('optJoin')],['fixed',t('optFixed')]]))+
+     (cfg.billing==='fixed'?row(t('qDay'),sel('billDay',cfg.billDay,Array.from({length:28},(_,i)=>[i+1,num(i+1)]))):'')+
+     row(t('qFee'),`<input id="s-fee" inputmode="numeric" value="${cfg.defaultFee}">`,t('helpFee'))],
+   ['rem',I.bell,'c-late',t('secRem'),dg(t('sumRem',cfg.soonDays,cfg.endSoon)),
+     row(t('qSoon'),sel('soonDays',cfg.soonDays,[1,2,3,5,7].map(n=>[n,dg(t('optBefore',n))])),t('helpSoon'))+
+     row(t('qEnd'),sel('endSoon',cfg.endSoon,[15,30,60,90].map(n=>[n,dg(t('optEnd',n))])),t('helpEnd'))],
+   ['msg',I.msg,'c-ok',t('secMsg'),t('sumMsg'),
+     row(t('qMsgPick'),sel('msgKey',msgKey,[['soon',t('tSoon')],['today',t('tToday')],['late',t('tLate')]]))+
+     `<div class="editor"><label class="sq" for="s-tpl">${t('qMsgWrite')}</label><textarea id="s-tpl" data-tpl="${msgKey}">${esc(toFriendly(cfg.tpl[lang][msgKey]))}</textarea>
+      <div class="quick"><span class="sub">${t('addWord')}</span>${TOKS.map(k=>`<button type="button" class="chip" data-act="tok" data-v="${k}">${tokLabel(k)}</button>`).join('')}</div>
+      <span class="sq">${t('preview')}</span><div class="bubble" id="s-preview">${esc(previewText())}</div>
+      <div><button type="button" class="btn sec" data-act="tplreset">${t('tplReset')}</button></div></div>`],
+   ['show',I.grid,'c-all',t('secShow'),onNames||t('off'),
+     `<p class="hint" style="padding-bottom:8px">${t('showHint')}</p>`+tgl('mod','msgs',m.msgs,t('mMsgs'))+tgl('mod','cal',m.cal,t('calendar'))+tgl('mod','rooms',m.rooms,t('rooms'))+tgl('mod','expenses',m.expenses,t('expenses'))+tgl('mod','deposit',m.deposit,t('mDep'))],
+   ['pay',I.cash,'c-ok',t('secPay'),payNames,
+     tgl('pmt','cash',cfg.pay.cash,t('cash'))+tgl('pmt','esewa',cfg.pay.esewa,'eSewa')+tgl('pmt','khalti',cfg.pay.khalti,'Khalti')+tgl('pmt','bank',cfg.pay.bank,t('bank'))],
+   ['form',I.form,'c-soon',t('secForm'),dg(t('sumForm',formN)),
+     `<p class="hint" style="padding-bottom:8px">${t('formHint')}</p>`+tgl('fld','gd',cfg.fields.gd,t('fGuard'))+tgl('fld','college',cfg.fields.college,t('fCollege'))+tgl('fld','address',cfg.fields.address,t('fAddress'))+
+     (cfg.custom.length?`<div class="bedbox">${cfg.custom.map((c,i)=>`<span class="bchip c-all">${esc(c)}<button type="button" data-act="cfdel" data-v="${i}" aria-label="${t('del')} ${esc(c)}">×</button></span>`).join('')}</div>`:'')+
+     `<div class="setrow"><div><div class="sq">${t('stOwn')}</div></div><div class="addline" style="flex-wrap:nowrap"><input id="s-own" placeholder="${t('stOwnPh')}" autocomplete="off"><button type="button" class="btn sec" data-act="cfadd">${t('stAddBtn')}</button></div></div>`],
+   ['rooms',I.bed,'c-all',t('secRooms'),dg(t('sumRooms',rooms.length,BEDS.length)),
+     row(t('qRoom'),sel('room',setRoom,[...rooms.map(r=>[r,`${t('room')} ${num(r)}`]),['__new',t('newRoomOpt')]]))+roomBody]
+  ];
+  app.innerHTML=`<p class="hint">${t('stAuto')}</p><div class="setlist">${secs.map(([id,ic,c,title,sum,body])=>{const open=setOpen===id;return`<section class="setsec ${open?'open':''}"><button type="button" class="sechead" data-act="setopen" data-v="${id}" aria-expanded="${open}"><span class="secico ${c}">${ic}</span><span class="t"><b>${title}</b><span class="sub">${esc(sum)}</span></span><span class="chev">${I.down}</span></button>${open?`<div class="secbody">${body}</div>`:''}</section>`}).join('')}</div>`;
+}
+let payRange='month';
+const sameMonth=(d,y,m)=>{const[a,b]=fromIdx(d);return a===y&&b===m};
+const allPays=()=>[...S,...PAST].flatMap(s=>s.pays.map((p,i)=>({s,p,i}))).sort((a,b)=>b.p.d-a.p.d||a.i-b.i);
+function relDate(d){const n=TODAY-d;return n===0?t('today'):n===1?t('yesterday'):n<7?t('daysAgo',n).replace(/\d+/g,num):fmtS(d)}
+function monthTotals(){
+  const[y,m]=fromIdx(TODAY);
+  const collected=allPays().filter(x=>sameMonth(x.p.d,y,m)).reduce((a,x)=>a+x.p.a,0);
+  const owed=S.reduce((a,s)=>a+s.left,0);
+  const coming=monthEvents(y,m).filter(e=>e.k==='coming').reduce((a,e)=>a+e.s.fee,0);
+  return{y,m,collected,still:owed+coming,total:collected+owed+coming};
+}
+function chartHtml(){
+  const months=[];let[y,m]=fromIdx(TODAY);
+  for(let i=0;i<6;i++){months.unshift({y,m});m--;if(m<1){m=12;y--}}
+  const pays=allPays();
+  months.forEach(o=>o.sum=pays.filter(x=>sameMonth(x.p.d,o.y,o.m)).reduce((a,x)=>a+x.p.a,0));
+  const top=Math.max(...months.map(o=>o.sum),1),max=Math.ceil(top/50000)*50000;
+  const grid=[0,.5,1].map(f=>`<div class="gl" style="bottom:${f*100}%"><span>${rs(max*f)}</span></div>`).join('');
+  const bars=months.map((o,i)=>{const pct=o.sum/max*100,cur=i===5,tip=`${MN[lang][o.m-1]}: ${rs(o.sum)}${cur?' ('+t('soFar')+')':''}`;
+    return`<div class="bcol ${cur?'cur':''}" tabindex="0" data-tip="${esc(tip)}"><i style="height:${pct}%"></i>${cur?`<span class="val" style="bottom:calc(${pct}% + 3px)">${rs(o.sum)}</span>`:''}</div>`}).join('');
+  const label=months.map(o=>`${MN[lang][o.m-1]} ${rs(o.sum)}`).join(', ');
+  return`<div class="plot" role="img" aria-label="${esc(t('chartT')+': '+label)}">${grid}<div class="bars">${bars}</div></div><div class="xl">${months.map(o=>`<span>${MN[lang][o.m-1]}</span>`).join('')}</div>
+  <table class="sr"><caption>${t('chartT')}</caption>${months.map(o=>`<tr><th>${MN[lang][o.m-1]}</th><td>${rs(o.sum)}</td></tr>`).join('')}</table>`;
+}
+function renderHome(){
+  const{y,m,collected,still,total}=monthTotals(),pct=total?Math.round(collected/total*100):0,md=cfg.mods;
+  const beds=bedList(),free=beds.filter(b=>b.k==='empty').length,joined=S.filter(s=>sameMonth(s.join,y,m)).length;
+  const late=S.filter(s=>status(s)==='late').length,today=S.filter(s=>status(s)==='today').length;
+  const pend=queue().filter(s=>!s.sent).length;
+  const todayIn=allPays().filter(x=>x.p.d===TODAY).reduce((a,x)=>a+x.p.a,0);
+  const due=queue().sort((a,b)=>ORDER[status(a)]-ORDER[status(b)]||dueKey(a)-dueKey(b));
+  const dueRows=due.slice(0,6).map(s=>{const st=status(s);return`<div class="drow">
+    <button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face ${st}">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${s.left?t('subLeft',rs(s.left)):t('subSoon',rs(Math.max(s.fee-s.credit,0)))}</span></span></button>
+    <div class="cell">${dueCell(s)}</div>
+    <div class="acts"><button type="button" class="btn pri" data-act="pay" data-id="${s.id}">${I.cash}${t('got')}</button><button type="button" class="btn wa" data-act="wa" data-id="${s.id}" aria-label="WhatsApp ${esc(s.name)}" ${md.msgs?'':'disabled'}>${I.msg}</button></div></div>`}).join('');
+  const latest=allPays().slice(0,5).map(({s,p})=>`<div class="prow"><button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face paid">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${relDate(p.d)} · ${t(p.h)}</span></span></button><b>${rs(p.a)}</b></div>`).join('');
+  const ending=S.filter(isEnding).sort((a,b)=>endIdx(a)-endIdx(b)).slice(0,4).map(s=>`<div class="prow"><button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face soon">${esc(initials(s.name))}</span><span style="min-width:0;flex:1"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))} · ${stayText(s)}</span>${stayMeter(s)}</span></button></div>`).join('');
+  const spent=EXP.filter(e=>sameMonth(e.d,y,m)).reduce((a,e)=>a+e.a,0);
+  app.innerHTML=`<div class="todo"><p>${t('todaySum',late,today).replace(/\d+/g,num)}</p>
+   <button type="button" class="btn pri" style="flex:none" data-act="go" data-v="add">${I.plus}${t('add')}</button>
+   ${md.msgs?`<button type="button" class="btn wa" data-act="go" data-v="msgs">${I.msg}${t('sendRem')} (${num(pend)})</button>`:''}</div>
+  <div class="cards">
+   <button type="button" class="stat c-all" data-act="go" data-v="people"><span class="lab">${t('students')}</span><span class="n">${num(S.length)}</span><span class="s">${md.rooms?t('subFree',free).replace(/\d+/g,num)+' · ':''}${t('newThis',joined).replace(/\d+/g,num)}</span>${md.rooms?meter((beds.length-free)/Math.max(beds.length,1)*100,'stay',t('occupied')):''}</button>
+   <button type="button" class="stat c-soon" data-act="go" data-v="dues"><span class="lab">${t('hToCollect')}</span><span class="n money">${rs(total)}</span><span class="s">${MN[lang][m-1]} ${num(y)}</span></button>
+   <button type="button" class="stat c-ok" data-act="go" data-v="pays"><span class="lab">${t('hCollected')}</span><span class="n money">${rs(collected)}</span><span class="s">${t('pctDone',pct).replace(/\d+/g,num)} · ${t('subToday',rs(todayIn))}</span>${meter(pct,'ok',t('pctDone',pct))}</button>
+   <button type="button" class="stat c-late" data-act="go" data-v="dues"><span class="lab">${t('hStill')}</span><span class="n money">${rs(still)}</span><span class="s">${t('inclOld')}</span></button>
+  </div>
+  <div class="home"><div class="col">
+   <div class="card" style="gap:6px"><div class="ch"><h2>${t('whoPay')}</h2><button type="button" class="seeall" data-act="go" data-v="dues">${t('seeAll')}${due.length?` (${num(due.length)})`:''}</button></div>${dueRows||`<div class="empty">${t('allPaid')}</div>`}</div>
+   <div class="card" style="gap:2px"><h2>${t('chartT')}</h2><span class="sub">${t('chartS')}</span>${chartHtml()}</div>
+  </div>
+  <div class="col">
+   <div class="card" style="gap:6px"><div class="ch"><h2>${t('latest')}</h2><button type="button" class="seeall" data-act="go" data-v="pays">${t('seeAll')}</button></div>${latest||`<div class="empty">${t('noPay')}</div>`}</div>
+   ${md.rooms?`<div class="card" style="gap:6px"><div class="ch"><h2>${t('leaving')}</h2><button type="button" class="seeall" data-act="go" data-v="rooms">${t('seeAll')}</button></div>${ending||`<div class="empty" style="padding:16px 8px">${t('nobodyLeaving')}</div>`}</div>`:''}
+   ${md.expenses?`<div class="card" style="gap:0"><div class="ch" style="margin-bottom:6px"><h2>${t('expenses')}</h2><button type="button" class="seeall" data-act="go" data-v="expenses">${t('seeAll')}</button></div><div class="line"><span>${t('collected')}</span><span>${rs(collected)}</span></div><div class="line"><span>${t('spent')}</span><span>${rs(spent)}</span></div><div class="line"><span><b>${t('remain')}</b></span><span><b>${rs(collected-spent)}</b></span></div></div>`:''}
+  </div></div>`;
+}
+function renderPays(){
+  const[y,m]=fromIdx(TODAY);
+  const list=allPays().filter(x=>payRange==='all'||sameMonth(x.p.d,y,m));
+  const sum=list.reduce((a,x)=>a+x.p.a,0);
+  const rows=list.map(({s,p,i})=>`<div class="row pay">
+   <button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face paid">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))}</span></span></button>
+   <div class="cell" data-l="${t('rcAmt')}"><span class="left">${rs(p.a)}</span></div>
+   <div class="cell" data-l="${t('rcHow')}">${t(p.h)}</div>
+   <div class="cell" data-l="${t('rcDate')}">${fmt(p.d)}</div>
+   <div class="acts"><button type="button" class="mini" data-act="receipt" data-id="${s.id}" data-v="${i}">${t('receipt')}</button></div></div>`).join('');
+  app.innerHTML=`<div><button type="button" class="btn sec" style="background:var(--panel)" data-act="go" data-v="list">${I.back}${t('back')}</button></div>
+  <div class="sortrow"><button type="button" class="chip" data-act="prange" data-v="month" aria-pressed="${payRange==='month'}">${t('rMonth')}</button><button type="button" class="chip" data-act="prange" data-v="all" aria-pressed="${payRange==='all'}">${t('rAll')}</button><span style="margin-left:auto;font-weight:600">${t('total')}: ${rs(sum)}</span></div>
+  <div class="book"><div class="row pay head"><div>${t('cStudent')}</div><div>${t('rcAmt')}</div><div>${t('rcHow')}</div><div>${t('rcDate')}</div><div></div></div>${rows||`<div class="empty">${t('noPay')}</div>`}</div>`;
+}
+const DEMO_PHONE='9779861828821';
+const waLink=text=>`https://wa.me/${DEMO_PHONE}?text=${encodeURIComponent(text)}`;
+function rcText(s,i){const p=s.pays[i];return[cfg.name,`${t('rcNo')} R-${num(s.id*100+s.pays.length-i)}`,`${t('cStudent')}: ${s.name}`,`${t('rcDate')}: ${fmt(p.d)}`,`${t('rcAmt')}: ${rs(p.a)} (${t(p.h)})`,`${t('rcLeft')}: ${rs(s.left)}`].join('\n')}
+function render(){
+  document.documentElement.lang=lang;
+  document.getElementById('note').textContent=t('note');
+  document.getElementById('title').textContent=t(TITLES[view==='one'?backTo:view]);
+  document.getElementById('today').textContent=`${t('today')}: ${fmt(TODAY)}`;
+  document.getElementById('l-en').setAttribute('aria-pressed',lang==='en');
+  document.getElementById('l-ne').setAttribute('aria-pressed',lang==='ne');
+  renderNav();
+  ({settings:renderSettings,expenses:renderExpenses,list:renderHome,dues:renderList,pays:renderPays,people:renderPeople,past:renderPast,msgs:renderMsgs,one:renderOne,add:renderAdd,cal:renderCal,rooms:renderRooms})[view]();
+}
+let toastTimer;
+function toast(msg,undo){
+  const el=document.getElementById('toast');
+  el.innerHTML=`<span>${esc(msg)}</span>${undo?`<button type="button" id="undo">${t('undo')}</button>`:''}`;
+  el.hidden=false;clearTimeout(toastTimer);
+  if(undo)document.getElementById('undo').onclick=()=>{undo();el.hidden=true;toast(t('undone'))};
+  toastTimer=setTimeout(()=>el.hidden=true,undo?9000:3000);
+}
+const dlg=document.getElementById('pay');
+function openPay(s){
+  payState={id:s.id,how:Object.keys(cfg.pay).find(h=>cfg.pay[h])||'cash',amt:s.left||Math.max(s.fee-s.credit,0)};
+  drawPay();dlg.showModal();const a=document.getElementById('p-amt');a.focus();a.select();
+}
+function drawPay(){
+  const s=byId(payState.id);
+  dlg.innerHTML=`<form class="dlg" id="payf" novalidate><h2>${t('payTitle',esc(s.name))}</h2>
+  <label style="display:grid;gap:4px;font-weight:600">${t('amount')}<input class="amt" id="p-amt" inputmode="numeric" value="${payState.amt}"></label>
+  <div class="chips">${s.left?`<button type="button" class="chip" data-act="amt" data-v="${s.left}">${t('full')}</button>`:''}<button type="button" class="chip" data-act="amt" data-v="${s.fee}">${t('oneMonth')}</button></div>
+  <div class="after" id="p-after"></div>
+  <div style="display:grid;gap:6px;font-weight:600">${t('how')}<div class="chips">${Object.keys(cfg.pay).filter(h=>cfg.pay[h]).map(h=>`<button type="button" class="chip" data-act="how" data-v="${h}" aria-pressed="${payState.how===h}">${h==='esewa'?'eSewa':h==='khalti'?'Khalti':t(h)}</button>`).join('')}</div></div>
+  <div class="err" id="p-err" role="alert"></div>
+  <div class="row2"><button class="btn pri big" type="submit">${t('save')}</button><button type="button" class="btn sec big" data-act="paycancel">${t('cancel')}</button></div></form>`;
+  updAfter();
+}
+const amtVal=()=>Number(String(document.getElementById('p-amt').value).replace(/[^\d]/g,''))||0;
+function updAfter(){
+  const s=byId(payState.id),rem=Math.max(s.left-amtVal(),0);
+  document.getElementById('p-after').textContent=rem?t('after',rs(rem)):t('afterNone');
+}
+T.en.subLeft=a=>a+' left';T.ne.subLeft=a=>a+' बाँकी';T.en.subSoon=a=>a+' coming';T.ne.subSoon=a=>a+' आउँदै';
+Object.assign(T.en,{calendar:'Calendar',rooms:'Rooms',wk:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],lDue:'To pay',lEnd:'Stay ends',nothing:'Nothing on this day.',prevM:'Previous month',nextM:'Next month',bed:'Bed',book:'Book',emptyB:'Empty',allBeds:'All beds',occupied:'Occupied',ending:'Ending soon',subBeds:a=>'In '+a+' rooms',subOcc:'Students staying',subEmpty:'Ready to book',subEnding:a=>'Free within '+a+' days',freeFrom:d=>'Empty from '+d,fullOf:(a,b)=>a+' of '+b+' full',floor:f=>'Floor '+f,roomErr:'No empty bed. Please free a bed first.'});
+Object.assign(T.ne,{calendar:'पात्रो',rooms:'कोठा',wk:['आइत','सोम','मंगल','बुध','बिहि','शुक्र','शनि'],lDue:'तिर्न बाँकी',lEnd:'बसाइ सकिने',nothing:'यो दिन केही छैन।',prevM:'अघिल्लो महिना',nextM:'अर्को महिना',bed:'बेड',book:'बुक गर्नुहोस्',emptyB:'खाली',allBeds:'सबै बेड',occupied:'भरिएको',ending:'चाँडै खाली हुने',subBeds:a=>a+' कोठामा',subOcc:'बसिरहेका विद्यार्थी',subEmpty:'बुक गर्न मिल्ने',subEnding:a=>a+' दिनभित्र खाली',freeFrom:d=>d+' देखि खाली',fullOf:(a,b)=>b+' मध्ये '+a+' भरिएको',floor:f=>'तला '+f,roomErr:'खाली बेड छैन। पहिले बेड खाली गर्नुहोस्।'});
+Object.assign(T.en,{dashboard:'Dashboard',back:'Back',sortBy:'Sort by',sDue:'Payment due',sJoin:'Joining date (newest)',sName:'Name',finish:'Finish stay',del:'Delete',pastH:'Past students',pastTag:'Left the hostel',leftOn:'Left on',stayedH:'Stayed',stayed:n=>n===1?'1 month':n+' months',noPast:'No past students yet.',lLeft:'Finished stay and left',
+askFinishT:n=>'Finish stay for '+n+'?',askFinishB:r=>'This student will move to Past students, and bed '+r+' will become empty. All records are kept.',askOwe:a=>a+' is still left to pay.',yesFinish:'Yes, finish stay',
+askDelT:n=>'Delete '+n+'?',askDelB:'This removes the student and every payment record. Use it only for a student added by mistake. If the student has left, use Finish stay.',yesDel:'Yes, delete',noBack:'No, go back',finished:n=>n+' moved to Past students.',deleted:n=>n+' deleted.'});
+Object.assign(T.ne,{dashboard:'ड्यासबोर्ड',back:'फर्कनुहोस्',sortBy:'क्रम मिलाउनुहोस्',sDue:'तिर्ने दिन',sJoin:'आएको मिति (नयाँ पहिले)',sName:'नाम',finish:'बसाइ सक्नुहोस्',del:'हटाउनुहोस्',pastH:'पुराना विद्यार्थी',pastTag:'होस्टल छोडेको',leftOn:'छोडेको मिति',stayedH:'बसेको',stayed:n=>n+' महिना',noPast:'अहिलेसम्म कोही छैन।',lLeft:'बसाइ सकेर छोडेको',
+askFinishT:n=>n+' को बसाइ सक्ने हो?',askFinishB:r=>'यो विद्यार्थी पुराना विद्यार्थीको सूचीमा जान्छ र बेड '+r+' खाली हुन्छ। सबै विवरण सुरक्षित रहन्छ।',askOwe:a=>a+' अझै तिर्न बाँकी छ।',yesFinish:'हो, बसाइ सक्ने',
+askDelT:n=>n+' लाई हटाउने हो?',askDelB:'यसले विद्यार्थी र सबै भुक्तानी विवरण मेटाउँछ। गल्तीले थपेको भए मात्र प्रयोग गर्नुहोस्। विद्यार्थी गएको भए बसाइ सक्नुहोस् थिच्नुहोस्।',yesDel:'हो, हटाउने',noBack:'अहँ, फर्कने',finished:n=>n+' पुराना विद्यार्थीमा गयो।',deleted:n=>n+' हटाइयो।'});
+Object.assign(T.en,{daysLeft:n=>n===1?'1 day left':n+' days left',paidDays:n=>'Paid · '+n+' days left'});
+Object.assign(T.ne,{daysLeft:n=>n+' दिन बाँकी',paidDays:n=>'तिरेको · '+n+' दिन बाँकी'});
+Object.assign(T.en,{settings:'Settings',expenses:'Expenses',stAuto:'Changes save by themselves. Turn things on or off to match this hostel.',stHostel:'Hostel',stHostelName:'Hostel name',stShow:'What to show',mMsgs:'WhatsApp messages',mDep:'Security deposits',stFees:'Fees',stWhen:'When is the fee due?',bJoin:'On each joining date',bFixed:'Same date for all',stDay:'Which day of the month?',stDefFee:'Usual monthly fee',stDates:'Reminders and dates',stSoon:'Show as Due soon',stEnd:'Show as Ending soon',nDays:n=>n===1?'1 day before':n+' days before',stPay:'How students can pay',payKeep:'Keep at least one way to pay.',stForm:'New student form',fCollege:'College',fAddress:'Address',stOwn:'Add your own question',stOwnPh:'For example: Blood group',stAddBtn:'Add',stMsg:'WhatsApp message words',stMsgHint:'Keep the words in curly brackets. The app fills them in: {name} {amount} {date} {hostel}',tSoon:'Before the due date',tToday:'On the due date',tLate:'When late',stRooms:'Rooms and beds',stRoomNo:'Room number',stBeds:'Beds',stAddRoom:'Add room',stAddBed:'Add bed',roomDup:'That room already exists.',roomBad:'Please write a room number.',fDeposit:'Security deposit',deposit:'Deposit held',giveBack:a=>'Give back '+a,stillOwes:a=>'Student still owes '+a,settleZero:'Nothing to give back or collect.',lSettle:(a,b)=>`Deposit: ${a} used for dues, ${b} given back`,receipt:'Receipt',rcNo:'Receipt no.',rcDate:'Date',rcAmt:'Amount',rcHow:'Paid by',rcLeft:'Left to pay now',rcSend:'Send on WhatsApp',close:'Close',rcMock:'In the real app this opens WhatsApp with the receipt.',collected:'Collected this month',spent:'Spent this month',remain:'Left over',expWhat:'What was it for?',expAmt:'How much?',expAdd:'Add expense',expErr:'Please write what it was for and the amount.',expChips:['Electricity','Water','Internet','Food and groceries','Salary','Repair']});
+Object.assign(T.ne,{settings:'सेटिङ',expenses:'खर्च',stAuto:'परिवर्तन आफैं सेभ हुन्छ। यो होस्टललाई चाहिने कुरा मात्र खोल्नुहोस्।',stHostel:'होस्टल',stHostelName:'होस्टलको नाम',stShow:'के देखाउने',mMsgs:'व्हाट्सएप सन्देश',mDep:'धरौटी',stFees:'शुल्क',stWhen:'शुल्क कहिले तिर्ने?',bJoin:'आएको मितिमा',bFixed:'सबैको एउटै मिति',stDay:'महिनाको कुन गते?',stDefFee:'सामान्य मासिक शुल्क',stDates:'सन्देश र मिति',stSoon:'तिर्ने बेला देखाउने',stEnd:'चाँडै खाली देखाउने',nDays:n=>n+' दिन अघि',stPay:'कसरी तिर्न मिल्छ',payKeep:'कम्तीमा एउटा तरिका राख्नुहोस्।',stForm:'नयाँ विद्यार्थी फारम',fCollege:'कलेज',fAddress:'ठेगाना',stOwn:'आफ्नै प्रश्न थप्नुहोस्',stOwnPh:'जस्तै: रक्त समूह',stAddBtn:'थप्नुहोस्',stMsg:'व्हाट्सएप सन्देशका शब्द',stMsgHint:'{name} {amount} {date} {hostel} जस्ता शब्द नहटाउनुहोस्। एपले आफैं भर्छ।',tSoon:'तिर्ने दिन अघि',tToday:'तिर्ने दिनमा',tLate:'ढिला भएपछि',stRooms:'कोठा र बेड',stRoomNo:'कोठा नम्बर',stBeds:'बेड संख्या',stAddRoom:'कोठा थप्नुहोस्',stAddBed:'बेड थप्नुहोस्',roomDup:'यो कोठा पहिले नै छ।',roomBad:'कृपया कोठा नम्बर लेख्नुहोस्।',fDeposit:'धरौटी',deposit:'धरौटी रकम',giveBack:a=>a+' फिर्ता दिने',stillOwes:a=>'विद्यार्थीले अझै '+a+' तिर्नुपर्ने',settleZero:'दिनु वा लिनु केही छैन।',lSettle:(a,b)=>`धरौटी: ${a} बाँकीमा कट्यो, ${b} फिर्ता`,receipt:'रसिद',rcNo:'रसिद नं.',rcDate:'मिति',rcAmt:'रकम',rcHow:'तिरेको तरिका',rcLeft:'अहिले बाँकी',rcSend:'व्हाट्सएपमा पठाउनुहोस्',close:'बन्द गर्नुहोस्',rcMock:'साँचो एपमा यसले रसिदसहित व्हाट्सएप खोल्छ।',collected:'यो महिना उठेको',spent:'यो महिना खर्च',remain:'बचेको',expWhat:'केमा खर्च भयो?',expAmt:'कति?',expAdd:'खर्च थप्नुहोस्',expErr:'कृपया खर्चको कारण र रकम लेख्नुहोस्।',expChips:['बिजुली','पानी','इन्टरनेट','खाना र किराना','तलब','मर्मत']});
+Object.assign(T.en,{dueList:'Due list',allPays:'All payments',seeAll:'See all',toPay:'To pay',hToCollect:'To collect this month',hCollected:'Collected so far',hStill:'Still left',subFree:n=>n===1?'1 bed empty':n+' beds empty',newThis:n=>n+' new this month',pctDone:p=>p+'% collected',subToday:a=>a+' today',inclOld:'Includes older dues',whoPay:'Who has to pay',latest:'Latest payments',leaving:'Leaving soon',nobodyLeaving:'Nobody is leaving soon.',allPaid:'Everyone has paid.',todaySum:(l,d)=>l||d?`Today: ${l} late and ${d} due today.`:'Nothing is late today.',sendRem:'Send reminders',chartT:'Money collected',chartS:'Last 6 months',soFar:'so far',yesterday:'Yesterday',daysAgo:n=>n+' days ago',rMonth:'This month',rAll:'All time',total:'Total'});
+Object.assign(T.ne,{dueList:'बाँकी सूची',allPays:'सबै भुक्तानी',seeAll:'सबै हेर्नुहोस्',toPay:'तिर्न बाँकी',hToCollect:'यो महिना उठाउनुपर्ने',hCollected:'अहिलेसम्म उठेको',hStill:'अझै बाँकी',subFree:n=>n+' बेड खाली',newThis:n=>'यो महिना '+n+' नयाँ',pctDone:p=>p+'% उठ्यो',subToday:a=>'आज '+a,inclOld:'पुरानो बाँकीसहित',whoPay:'तिर्न बाँकी भएका',latest:'पछिल्ला भुक्तानी',leaving:'चाँडै जाने',nobodyLeaving:'चाँडै जाने कोही छैन।',allPaid:'सबैले तिरिसके।',todaySum:(l,d)=>l||d?`आज: ${l} जना ढिला, ${d} जनाको आज तिर्ने दिन।`:'आज कोही ढिला छैन।',sendRem:'सन्देश पठाउनुहोस्',chartT:'उठेको पैसा',chartS:'पछिल्ला ६ महिना',soFar:'अहिलेसम्म',yesterday:'हिजो',daysAgo:n=>n+' दिन अघि',rMonth:'यो महिना',rAll:'सबै',total:'जम्मा'});
+Object.assign(T.en,{stAuto:'Tap a section to open it. Everything saves by itself.',secHostel:'Hostel details',secFees:'Fees and due dates',secRem:'Reminder timing',secMsg:'WhatsApp message',secShow:'Show in the menu',secPay:'Ways to pay',secForm:'New student form',secRooms:'Rooms and beds',qName:'What is your hostel called?',helpName:'This name goes on messages and receipts.',qLang:'Which language do you want?',qWhen:'When do students pay?',optJoin:'On the date they joined',optFixed:'Same date for everyone',qDay:'Which date of the month?',qFee:'Usual monthly fee',helpFee:'Filled in for you when adding a student.',qSoon:'When should reminders start?',helpSoon:'The student turns yellow and goes on the message list.',optBefore:n=>n===1?'1 day before the due date':n+' days before the due date',qEnd:'When should a bed show as ending soon?',helpEnd:'The bed turns yellow so you can look for a new student.',optEnd:n=>n+' days before the stay ends',qMsgPick:'Which message do you want to change?',qMsgWrite:'Write your message',addWord:'Add to message:',tokName:'Student name',tokAmt:'Amount',tokDate:'Date',tokHostel:'Hostel name',preview:'This is how it will look',tplReset:'Go back to the original words',showHint:'Turn off what this hostel does not need.',formHint:'These questions appear when you add a student.',on:'On',off:'Off',qRoom:'Which room?',newRoomOpt:'+ Add a new room',qRoomNo:'New room number',qBedsN:'How many beds?',savedS:'Saved',sumJoin:'Due on joining date',sumFixed:n=>'Due on date '+n+' every month',sumRem:(a,b)=>`Starts ${a} days before · Beds show ${b} days before`,sumMsg:'Change the words students receive',sumForm:n=>n===1?'1 extra question':n+' extra questions',sumRooms:(a,b)=>`${a} rooms, ${b} beds`});
+Object.assign(T.ne,{stAuto:'खोल्न कुनै भागमा थिच्नुहोस्। सबै आफैं सेभ हुन्छ।',secHostel:'होस्टलको विवरण',secFees:'शुल्क र तिर्ने दिन',secRem:'सन्देशको समय',secMsg:'व्हाट्सएप सन्देश',secShow:'मेनुमा देखाउने',secPay:'तिर्ने तरिका',secForm:'नयाँ विद्यार्थी फारम',secRooms:'कोठा र बेड',qName:'तपाईंको होस्टलको नाम के हो?',helpName:'यो नाम सन्देश र रसिदमा आउँछ।',qLang:'कुन भाषा चाहिन्छ?',qWhen:'विद्यार्थीले कहिले तिर्छन्?',optJoin:'आएको मितिमा',optFixed:'सबैले एउटै मितिमा',qDay:'महिनाको कुन गते?',qFee:'सामान्य मासिक शुल्क',helpFee:'विद्यार्थी थप्दा आफैं भरिन्छ।',qSoon:'सन्देश कहिलेदेखि सुरु गर्ने?',helpSoon:'विद्यार्थी पहेँलो हुन्छ र सन्देश सूचीमा आउँछ।',optBefore:n=>'तिर्ने दिनभन्दा '+n+' दिन अघि',qEnd:'बेड कहिले चाँडै खाली देखाउने?',helpEnd:'नयाँ विद्यार्थी खोज्न बेड पहेँलो हुन्छ।',optEnd:n=>'बसाइ सकिनुभन्दा '+n+' दिन अघि',qMsgPick:'कुन सन्देश बदल्ने?',qMsgWrite:'आफ्नो सन्देश लेख्नुहोस्',addWord:'सन्देशमा थप्नुहोस्:',tokName:'विद्यार्थीको नाम',tokAmt:'रकम',tokDate:'मिति',tokHostel:'होस्टलको नाम',preview:'यस्तो देखिन्छ',tplReset:'सुरुकै शब्दमा फर्कनुहोस्',showHint:'यो होस्टललाई नचाहिने कुरा बन्द गर्नुहोस्।',formHint:'विद्यार्थी थप्दा यी प्रश्न आउँछन्।',on:'खुला',off:'बन्द',qRoom:'कुन कोठा?',newRoomOpt:'+ नयाँ कोठा थप्नुहोस्',qRoomNo:'नयाँ कोठा नम्बर',qBedsN:'कति बेड?',savedS:'सेभ भयो',sumJoin:'आएको मितिमा तिर्ने',sumFixed:n=>'हरेक महिना '+n+' गते तिर्ने',sumRem:(a,b)=>`${a} दिन अघि सुरु · बेड ${b} दिन अघि`,sumMsg:'विद्यार्थीले पाउने शब्द बदल्नुहोस्',sumForm:n=>n+' थप प्रश्न',sumRooms:(a,b)=>`${a} कोठा, ${b} बेड`});
+Object.assign(T.en,{note:'Demo with made-up students. Nothing is saved when you close or refresh this page. WhatsApp buttons open a real chat to the test number 9861828821.',demo:'Press Send in WhatsApp, then come back here.',testTo:'Test number: 9861828821',rcOpened:'WhatsApp opened with the receipt.'});
+Object.assign(T.ne,{note:'यो नमुना हो, विद्यार्थीहरू काल्पनिक हुन्। पेज बन्द गर्दा वा रिफ्रेस गर्दा केही सेभ हुँदैन। व्हाट्सएप बटनले परीक्षण नम्बर ९८६१८२८८२१ मा साँचो च्याट खोल्छ।',demo:'व्हाट्सएपमा Send थिचेर यहाँ फर्कनुहोस्।',testTo:'परीक्षण नम्बर: ९८६१८२८८२१',rcOpened:'रसिदसहित व्हाट्सएप खुल्यो।'});
+T.en.esewa='eSewa';T.en.khalti='Khalti';T.ne.esewa='eSewa';T.ne.khalti='Khalti';
+function applyPay(s,amt,how){
+  const snap=JSON.stringify(s),arr=S.includes(s)?S:PAST,i=arr.indexOf(s);
+  let extra=amt-s.left;
+  if(extra>=0){s.left=0;s.lateSince=null;s.credit+=extra;
+    while(s.credit>=s.fee){s.nextDue=addMonth(s.nextDue,jdOf(s));s.credit-=s.fee}
+  }else s.left-=amt;
+  s.pays.unshift({d:TODAY,a:amt,h:how});
+  s.log.push({d:TODAY,k:'lPaid',a:amt,h:how});
+  s.sent=false;
+  render();
+  toast(t('saved',rs(amt),s.name),()=>{arr[i]=JSON.parse(snap);render()});
+}
+document.addEventListener('input',e=>{
+  if(e.target.id==='search'){q=e.target.value;renderRows()}
+  if(e.target.id==='psearch'){pq=e.target.value;renderPeopleRows()}
+  if(e.target.id==='s-name')cfg.name=e.target.value;
+  if(e.target.id==='s-fee')cfg.defaultFee=Number(e.target.value.replace(/\D/g,''))||0;
+  if(e.target.dataset.tpl){cfg.tpl[lang][e.target.dataset.tpl]=fromFriendly(e.target.value);document.getElementById('s-preview').textContent=previewText()}
+  if(e.target.id==='p-amt'){payState.amt=e.target.value;updAfter()}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='s-name'||e.target.id==='s-fee'){render();toast(t('savedS'));return}
+  if(e.target.dataset.tpl){toast(t('savedS'));return}
+  const k=e.target.dataset.set;if(!k)return;const v=e.target.value;
+  if(k==='billing'){cfg.billing=v;applyBilling()}
+  if(k==='billDay'){cfg.billDay=+v;applyBilling()}
+  if(k==='soonDays')cfg.soonDays=+v;
+  if(k==='endSoon')cfg.endSoon=+v;
+  if(k==='lang')lang=v;
+  if(k==='msgKey')msgKey=v;
+  if(k==='room')setRoom=v;
+  render();
+  document.querySelector(`[data-set="${k}"]`)?.focus();
+  if(k!=='msgKey'&&k!=='room')toast(t('savedS'));
+});
+document.addEventListener('submit',e=>{
+  e.preventDefault();
+  if(e.target.id==='payf'){
+    const a=amtVal();
+    if(a<=0){document.getElementById('p-err').textContent=t('amtErr');return}
+    const s=byId(payState.id);dlg.close();applyPay(s,a,payState.how);
+  }
+  if(e.target.id==='addf'){
+    const g=id=>document.getElementById(id)?.value.trim()??'',err=document.getElementById('a-err');
+    const name=g('a-name'),ph=g('a-ph'),gd=g('a-gd'),fee=Number(g('a-fee').replace(/[^\d]/g,''));
+    if(!name){err.textContent=t('nameErr');return}
+    if(!/^\d{10}$/.test(ph)){err.textContent=t('phoneErr');return}
+    if(!fee){err.textContent=t('feeErr');return}
+    if(!g('a-room')){err.textContent=t('roomErr');return}
+    const y=+g('a-y'),m=+g('a-m'),d=+g('a-d'),join=toIdx(y,m,Math.min(d,ML[y][m-1]));
+    const ds=dues(join,d),last=ds[ds.length-1];
+    const extra={};if(cfg.fields.college)extra[t('fCollege')]=g('a-college');if(cfg.fields.address)extra[t('fAddress')]=g('a-address');cfg.custom.forEach((c,i)=>extra[c]=g('a-c'+i));
+    S.push({id:nextId++,name,ph,gd:gd||ph,room:g('a-room'),fee,join,jd:d,months:stay,left:fee,lateSince:last,nextDue:addMonth(last,cfg.billing==='fixed'?cfg.billDay:d),pays:[],log:[{d:join,k:'lJoin'}],credit:0,sent:false,dep:Number(g('a-dep').replace(/\D/g,''))||0,extra});
+    bookBed=null;view='people';peopleSort='join';pq='';render();toast(t('addedS',name));
+  }
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const{act,v}=b.dataset,s=b.dataset.id?byId(+b.dataset.id):null;
+  if(act==='lang'){lang=v;if(dlg.open)dlg.close();render()}
+  if(act==='go'){view=v;bookBed=null;render();window.scrollTo(0,0)}
+  if(act==='filter'){filter=filter===v?'topay':v;render()}
+  if(act==='open'){if(view!=='one')backTo=view;cur=s.id;view='one';render();window.scrollTo(0,0)}
+  if(act==='pay')openPay(s);
+  if(act==='wa'){wa={id:s.id,step:'ready'};s.sent=false;view='msgs';render();window.scrollTo(0,0)}
+  if(act==='pick'){wa={id:s.id,step:'ready'};render()}
+  if(act==='waopen'){setTimeout(()=>{wa.step='confirm';render()},150)}
+  if(act==='wano'){wa.step='ready';render()}
+  if(act==='wayes'){const x=S.find(y=>y.id===wa.id);x.sent=true;x.log.push({d:TODAY,k:'lMsg'});wa.step='ready';toast(t('sentOk',x.name));render()}
+  if(act==='stay'){stay=+v;document.querySelectorAll('[data-act="stay"]').forEach(c=>c.setAttribute('aria-pressed',+c.dataset.v===stay))}
+  if(act==='amt'){payState.amt=v;document.getElementById('p-amt').value=v;updAfter()}
+  if(act==='how'){payState.how=v;document.querySelectorAll('[data-act="how"]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.v===v))}
+  if(act==='paycancel')dlg.close();
+  if(act==='mod'){cfg.mods[v]=!cfg.mods[v];render()}
+  if(act==='pmt'){const on=Object.values(cfg.pay).filter(Boolean).length;if(!cfg.pay[v]||on>1){cfg.pay[v]=!cfg.pay[v];render()}else toast(t('payKeep'))}
+  if(act==='fld'){cfg.fields[v]=!cfg.fields[v];render()}
+  if(act==='bill'){cfg.billing=v;applyBilling();render()}
+  if(act==='soond'){cfg.soonDays=+v;render()}
+  if(act==='endd'){cfg.endSoon=+v;render()}
+  if(act==='cfadd'){const el=document.getElementById('s-own'),x=el.value.trim();if(x&&!cfg.custom.includes(x)){cfg.custom.push(x);render()}}
+  if(act==='cfdel'){cfg.custom.splice(+v,1);render()}
+  if(act==='bedadd'){const has=BEDS.filter(b=>b.startsWith(v+'-')).map(b=>b.split('-')[1]);const L='ABCDEFGHIJKL'.split('').find(c=>!has.includes(c));if(L){BEDS.push(v+'-'+L);BEDS.sort();render()}}
+  if(act==='beddel'){if(!S.some(x=>x.room===v)){BEDS=BEDS.filter(b=>b!==v);render()}}
+  if(act==='roomadd'){const r=document.getElementById('s-room').value.trim(),n=+document.getElementById('s-beds').value,err=document.getElementById('s-err');
+    if(!/^[0-9]+$/.test(r)){err.textContent=t('roomBad');return}
+    if(BEDS.some(b=>b.startsWith(r+'-'))){err.textContent=t('roomDup');return}
+    for(let i=0;i<n;i++)BEDS.push(r+'-'+'ABCDEF'[i]);BEDS.sort();setRoom=r;render();toast(t('savedS'))}
+  if(act==='setopen'){setOpen=setOpen===v?null:v;render()}
+  if(act==='tok'){const a=document.getElementById('s-tpl'),ins=`[${tokLabel(v)}]`,st=a.selectionStart??a.value.length,en=a.selectionEnd??st;a.value=a.value.slice(0,st)+ins+a.value.slice(en);a.dispatchEvent(new Event('input',{bubbles:true}));a.focus();a.selectionStart=a.selectionEnd=st+ins.length}
+  if(act==='tplreset'){cfg.tpl[lang][msgKey]=DEF_TPL[lang][msgKey];render();toast(t('savedS'))}
+  if(act==='receipt')openReceipt(s,+v);
+  if(act==='rcsend'){setTimeout(()=>{askDlg.close();toast(t('rcOpened'))},150)}
+  if(act==='expq')document.getElementById('e-what').value=v;
+  if(act==='expadd'){const w=document.getElementById('e-what').value.trim(),a=Number(document.getElementById('e-amt').value.replace(/\D/g,''));if(!w||!a){document.getElementById('e-err').textContent=t('expErr');return}EXP.push({d:TODAY,what:w,a});render()}
+  if(act==='psort'){peopleSort=v;render()}
+  if(act==='prange'){payRange=v;render()}
+  if(act==='finish'||act==='delete')openAsk(act,s);
+  if(act==='askno')askDlg.close();
+  if(act==='askyes'){const{type,id}=askState,x=byId(id);askDlg.close();type==='finish'?doFinish(x):doDelete(x)}
+  if(act==='calmove'){let m=calM+ +v,y=calY;if(m<1){m=12;y--}if(m>12){m=1;y++}if(ML[y]){calY=y;calM=m;calSel=toIdx(y,m,1);render()}}
+  if(act==='caltoday'){[calY,calM]=fromIdx(TODAY);calSel=TODAY;render()}
+  if(act==='day'){calSel=+v;render()}
+  if(act==='roomf'){roomF=roomF===v?'all':v;render()}
+  if(act==='book'){bookBed=v;view='add';render();window.scrollTo(0,0)}
+});
+render();
+</script>
+
+</body>
+</html>
