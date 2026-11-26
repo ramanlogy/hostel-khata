@@ -6,16 +6,15 @@
 <style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
 <title>Hostel Khata</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Mukta:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
-/* Layout: white sidebar, pastel status cards that double as filters, one calm white list. Red late, yellow soon, green paid, everywhere. */
+/* Simple layout: one meaning per colour. Red = late, yellow = pay soon, green = paid, blue = a button you can press. No progress bars. */
 :root{
   color-scheme:light;
-  --bg:#eef3f1;--panel:#ffffff;--ink:#1b2b28;--muted:#5f6f6a;--rule:#e1e8e5;--tint:#f1f5f3;
-  --f-late:#e5534b;--f-soon:#f0b429;--f-ok:#2fb56a;--f-stay:#6a5ee8;--lime:#d4f266;--on-lime:#1b2b28;--wa:#0e7a6c;--on-wa:#ffffff;
-  --c-all:#d9d5fb;--c-late:#ffd6d2;--c-soon:#ffe9a6;--c-ok:#bfedcd;
-  --late:#a8231b;--soon:#765000;--ok:#17653a;
+  --bg:#f3f5f8;--panel:#ffffff;--ink:#16202c;--muted:#566170;--rule:#e3e7ec;--tint:#eef1f5;
+  --f-late:#d92d20;--f-soon:#e5a000;--f-ok:#16a34a;--f-stay:#2563eb;--lime:#2563eb;--on-lime:#ffffff;--wa:#0f7b5f;--on-wa:#ffffff;
+  --c-all:#eef1f5;--c-late:#fde3e1;--c-soon:#fdf0c4;--c-ok:#d9f5e3;
+  --late:#b42318;--soon:#7a4f00;--ok:#126b37;
   --display:"Poppins","Mukta",system-ui,sans-serif;--body:"Mukta",system-ui,"Noto Sans Devanagari",sans-serif;
 }
 *{box-sizing:border-box}
@@ -99,6 +98,7 @@ h2{font:600 21px/1.25 var(--display);margin:0}
 form.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
 label.fld{display:grid;gap:4px;font-weight:600}
 .fld input,.fld select,.amt{min-height:54px;padding:0 14px;border:2px solid var(--rule);border-radius:12px;background:var(--tint);width:100%;font-weight:400}
+.stayc{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:360px}.stayc[hidden]{display:none}
 .date3{display:grid;grid-template-columns:1fr 2fr 1.2fr;gap:6px}
 .err{color:var(--late);font-size:16px;font-weight:500}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -132,10 +132,22 @@ dialog::backdrop{background:rgba(12,24,20,.55)}
 .day .ad{font-size:13px;color:var(--muted)}
 .ev{display:block;font-size:15px;line-height:1.35;padding:0 6px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .more{font-size:14.5px;color:var(--muted);padding-inline:6px}
+.damt{font-weight:700;font-size:13.5px;color:var(--soon);padding-inline:4px;font-variant-numeric:tabular-nums}.damt.is-late{color:var(--f-late)}
+.day.past{opacity:.75}.day.past[aria-pressed="true"],.day.now{opacity:1}
+.calside{display:grid;gap:18px;align-content:start}
+.calside .acts{display:flex;gap:8px}
+.msum{display:flex;gap:16px;font-weight:700;font-size:18px}
+.calsum{margin-bottom:0}
 .dl{display:grid;gap:8px;padding:12px 0;border-top:1px solid var(--rule)}
 .dl:first-of-type{border-top:0;padding-top:0}
 .dl .tagrow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .floor{font:500 18px/1.2 var(--display);color:var(--muted);margin:4px 0 -6px}
+.blocks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.blk{display:grid;gap:2px;text-align:left;border:3px solid transparent;border-radius:16px;padding:12px 14px;background:var(--panel);color:var(--ink)}
+.blk[aria-pressed="true"]{border-color:var(--ink)}
+.blk b{font:600 22px/1.2 var(--display)}
+.blk .sub{font-size:15px}
+@media (max-width:560px){.blocks{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .roomgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
 .room{background:var(--panel);border-radius:18px;padding:14px;display:grid;gap:8px;align-content:start;min-width:0}
 .room .rt{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -149,6 +161,7 @@ dialog::backdrop{background:rgba(12,24,20,.55)}
   .wk,.days{gap:3px}
   .day{min-height:66px;padding:4px}
   .day .ad{display:none}
+  .damt{font-size:11.5px;padding:0}
   .ev{font-size:0;height:7px;padding:0}
 }
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -276,10 +289,292 @@ a.btn{text-decoration:none}
   .two,.tri{grid-template-columns:minmax(0,1fr)}
   .hero .acts{margin-left:0;width:100%}
 }
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--tint);padding:5px;border-radius:14px}
+.seg button{min-height:50px;border:0;border-radius:10px;background:transparent;font-weight:600;color:var(--ink)}
+.seg button[aria-pressed="true"][data-v="out"]{background:var(--c-late);color:var(--late)}
+.seg button[aria-pressed="true"][data-v="in"]{background:var(--c-ok);color:var(--ok)}
+.mlab{font-weight:600;margin-top:4px}
+.screen{background:var(--tint);border-radius:14px;padding:10px 16px;text-align:right;min-height:84px;display:grid;align-content:center;overflow:hidden}
+.screen .ex{color:var(--muted);font-size:17px;min-height:24px;word-break:break-all;font-variant-numeric:tabular-nums}
+.screen .res{font:600 32px/1.2 var(--display);font-variant-numeric:tabular-nums;word-break:break-all}
+.keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.keys button{min-height:58px;border:0;border-radius:12px;background:var(--tint);font:600 23px/1 var(--display);color:var(--ink)}
+.keys button.op{background:var(--c-all)}
+.keys button.clr{background:var(--c-late);color:var(--late)}
+.keys button:active{transform:scale(.97)}
+.amtrow{display:flex;gap:8px;align-items:stretch}
+.amtrow .amt{flex:1;min-width:0;font:600 26px/1 var(--display);color:var(--ink)}
+.calcbtn{flex:none;width:54px;border:2px solid var(--rule);border-radius:12px;background:var(--tint);color:var(--muted);display:grid;place-items:center}
+.calcbtn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.calcbtn[aria-pressed="true"]{color:var(--ink);border-color:var(--ink)}
+.calcbox{display:grid;gap:8px;padding:10px;border:1px dashed var(--rule);border-radius:12px}
+.mrow{display:flex;align-items:center;gap:12px;width:100%;padding:12px 4px;border:0;border-top:1px solid var(--rule);background:transparent;text-align:left;color:var(--ink);font-variant-numeric:tabular-nums}
+.mrow .d{flex:1;min-width:0}
+.mrow .mamt{text-align:right;white-space:nowrap}
+.mrow .chev svg{width:20px;height:20px;transition:transform .12s}
+.mrow[aria-expanded="true"] .chev svg{transform:rotate(180deg)}
+.mdet{padding:0 4px 10px 14px;border-left:3px solid var(--rule);margin:0 0 8px 6px}
+.mdet .line{border-top:0;padding:6px 0;align-items:center}
+.inc{color:var(--ok)}.outc{color:var(--late)}
+.monbar{display:flex;align-items:center;gap:10px}
+.monbar b{font:600 21px/1.2 var(--display);min-width:150px;text-align:center}
 @media (prefers-reduced-motion:no-preference){.btn,.nav,.chip,.stat{transition:background-color .12s,border-color .12s}}
+/* ---- Simple layout overrides ---- */
+.side{box-shadow:0 1px 0 var(--rule)}
+.nav:not([aria-current="page"]):hover{background:var(--tint)}
+.stat{border:3px solid transparent;padding:18px 20px}
+.stat .n{font-size:44px}
+.stat .n .money{font-size:34px}
+.stat .s{font-size:16px;font-weight:500}
+.cards.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tag{font-size:16px;padding:3px 12px;margin-bottom:2px}
+.cell .sub{margin-top:2px}
+.left{display:block}
+.btn{white-space:nowrap}
+.drow{grid-template-columns:minmax(0,1fr) 190px 370px;padding:14px 0}
+.todo .btn{flex:0 1 auto}
+.drow .left{font-size:20px}
+.acts .btn{flex:1}
+.btn.wa[disabled]{display:none}
+.todo p{font-size:22px}
+@media (min-width:1241px){
+  .row{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr) 370px}
+  .row.p{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)}
+  .row.p.pp{grid-template-columns:minmax(0,1.6fr) 1fr 1fr 1fr 1fr}
+}
+@media (max-width:640px){.acts .btn svg{display:none}.todo .btn{flex:1 1 150px}.drow .cell{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}.drow{grid-template-columns:minmax(0,1fr)}.cards.c3{grid-template-columns:1fr 1fr}.cards.c3>:last-child{grid-column:1/-1}}
+@media (max-width:900px){
+  body{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+  .side{background:none;box-shadow:none;padding:0;flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .brand{padding-inline:0}
+  .side nav{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;gap:2px;background:var(--panel);border-top:1px solid var(--rule);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+  .side .nav{flex:1 1 0;min-width:0;min-height:62px;font-size:13.5px;line-height:1.15;gap:3px;padding:6px 2px;border-radius:12px;position:relative}
+  .side .nav svg{width:24px;height:24px}
+  .badge{position:absolute;top:2px;left:calc(50% + 6px);font-size:13px;min-width:22px;padding:0 6px}
+  .lang{background:var(--panel)}
+  .lang button{padding:4px 12px;min-height:40px}
+  #toast{bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+}
+/* ---- Compact "hotel software" look (2026-11-19): small grey text, white panels with thin borders, colour only on what matters ---- */
+:root{--bg:#f6f7f9;--muted:#7a8491;--rule:#e6e9ee;--tint:#f2f4f7;--lime:#1f4fd1}
+body{font-size:14px;line-height:1.4;padding-block:12px 32px}
+svg{width:1.1em;height:1.1em}
+@media (min-width:901px){.shell{grid-template-columns:190px minmax(0,1fr);gap:16px}}
+.side{border:1px solid var(--rule);box-shadow:none;border-radius:10px;padding:14px 8px;gap:16px}
+.brand{font-size:16px;padding-inline:8px}
+nav{gap:2px}
+.nav{min-height:36px;padding:0 10px;border-radius:7px;font-size:14px;gap:10px;color:var(--muted)}
+.nav[aria-current="page"]{background:var(--tint);color:var(--ink);font-weight:600}
+.badge{font-size:11.5px;min-width:20px;padding:0 6px;line-height:18px;background:var(--f-late)}
+.lang{border-radius:8px;padding:3px}.lang button{min-height:28px;font-size:12.5px;border-radius:6px}
+.main{gap:12px}
+.top h1{font-size:19px}
+.today,.note{font-size:12.5px;color:var(--muted)}
+.cards,.cards.c3{gap:10px}
+.stat{background:var(--panel)!important;border:1px solid var(--rule);border-radius:10px;padding:10px 14px;gap:0}
+.stat[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.stat .lab{font-size:12.5px;font-weight:500;color:var(--muted)}
+.stat .n,.stat .n.money,.stat .n .money{font-size:22px;line-height:1.3}
+.stat .s{font-size:12px;font-weight:400;color:var(--muted)}
+.stat.c-late .n{color:var(--f-late)}.stat.c-soon .n{color:var(--soon)}.stat.c-ok .n{color:var(--ok)}
+.tri .n{font-size:18px}
+.search,.bar .search{min-height:36px;padding:0 12px;border:1px solid var(--rule);border-radius:8px;font-size:14px}
+.book,.card,.room,.setsec{border:1px solid var(--rule);border-radius:10px}
+.card{padding:14px;gap:8px}
+.row{padding:7px 14px;gap:10px}
+.row.head{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;padding-block:8px 6px;background:var(--tint)}
+.face{width:30px;height:30px;font-size:11.5px;font-weight:600;background:var(--tint);color:var(--muted)}
+.face.late,.face.soon,.face.today,.face.paid{background:var(--tint);color:var(--muted)}
+.face.late{box-shadow:inset 0 0 0 2px var(--f-late)}
+.who{gap:10px}
+.name{font-size:14px;font-weight:600}
+.sub,.fact span,.hint{font-size:12px;color:var(--muted)}
+.left,.drow .left{font-size:14px;font-weight:600}
+.tag{font-size:11.5px;padding:0 7px;border-radius:5px;margin:0;font-weight:600;line-height:18px}
+.tag.ok{background:none;color:var(--muted);font-weight:500;padding:0}
+.btn{min-height:32px;padding:0 10px;border-radius:7px;font-size:13px;font-weight:600;gap:6px}
+.btn.big,.big{min-height:40px;font-size:14px;padding:0 16px}
+.bar .btn,.addline .btn,.calnav .btn{min-height:36px;padding:0 12px}
+.btn.sec{background:var(--panel);border:1px solid var(--rule)}
+.acts{gap:6px;justify-content:flex-end}
+.acts .btn{flex:0 0 auto}
+.acts .btn.pri{background:var(--panel);color:var(--lime);border:1px solid var(--rule)}
+.acts .btn.pri:hover{border-color:var(--lime)}
+.btn.ico{width:32px;padding:0}
+.btn.ico svg{display:block!important}
+.btn.wa.ico{background:none;color:var(--wa);border:1px solid var(--rule)}
+.hero .acts .btn.pri{background:var(--lime);color:var(--on-lime);border:0}
+.hero .btn.wa{background:var(--panel);color:var(--wa);border:1px solid var(--rule)}
+.mini{min-height:24px;padding:0 6px;font-size:12px;background:none;color:var(--lime);font-weight:600}
+.line span:last-child{display:flex;align-items:center;gap:4px}
+.hero .face{width:44px;height:44px;font-size:15px}
+.hero h2{font-size:18px}
+h2,.headline,.ask{font-size:15px}
+.calhead h2{font-size:16px}
+.fact b{font-size:14px}
+.line{padding:6px 0;font-size:13.5px}
+.chip,.quick .chip{min-height:30px;padding:0 10px;border-radius:7px;font-size:13px;border:1px solid var(--rule)}
+.sortrow{font-size:12.5px;color:var(--muted);gap:6px}
+.seeall{min-height:28px;font-size:12.5px;background:none;color:var(--lime);padding:0 6px}
+.todo p{font:400 13.5px/1.4 var(--body);color:var(--muted);flex:1 1 280px}
+.todo .btn{min-height:32px;padding:0 12px}
+.drow{grid-template-columns:minmax(0,1fr) 170px auto;padding:7px 0}
+.drow .cell{display:flex;align-items:center;gap:8px;font-size:13px}
+.prow{padding:6px 0}.prow .face{width:28px;height:28px;font-size:11px}.prow .name{font-size:14px}
+.blk{border:1px solid var(--rule);border-radius:10px;padding:8px 12px}.blk b{font-size:15px}
+.blk[aria-pressed="true"]{border-color:var(--ink)}
+.floor{font-size:12.5px;text-transform:uppercase;letter-spacing:.04em}
+.room{padding:10px;gap:6px}.room h3{font-size:14px}
+.bed{min-height:40px;padding:6px 10px;border-radius:7px}.bed b{font-size:13.5px}
+.bed .go{font-size:12px;padding:2px 8px}
+.sechead{min-height:56px;padding:8px 14px}.sechead b{font-size:15px}.secico{width:34px;height:34px;border-radius:9px}
+.setrow .sq,.editor .sq{font-size:14px}
+.setrow select,.setrow input,.fld input,.fld select,.amt{min-height:38px;font-size:14px;border-width:1px;border-radius:8px;background:var(--panel)}
+.amt{font-size:22px}
+.tgl{min-height:44px;font-size:14px}
+.day{min-height:80px;border-radius:8px}.day .d{font-size:13px}.ev{font-size:12px}
+.keys button{min-height:46px;font-size:18px}
+.screen .res{font-size:24px}
+.calcbtn{width:42px;border-width:1px;border-radius:8px}
+dialog{border-radius:12px;padding:18px}
+.empty{padding:24px 12px;font-size:13px}
+@media (max-width:900px){
+  .side{border:0;padding:0}
+  .side .nav{min-height:52px;font-size:11.5px;color:var(--muted)}
+  .side .nav[aria-current="page"]{color:var(--lime);background:none}
+  .side .nav svg{width:20px;height:20px}
+}
+@media (max-width:640px){.drow{grid-template-columns:minmax(0,1fr) auto}.drow .acts{grid-column:2;grid-row:1/3}}
+/* Simple student overview (renderOne) */
+.one{gap:14px}
+.one .hero h2{font-size:22px}
+.one .hero .face{width:52px;height:52px;font-size:18px}
+.ov{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));column-gap:32px;border-top:1px solid var(--rule)}
+.ov div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 0;border-bottom:1px solid var(--rule)}
+.ov span{color:var(--muted)}
+.ov b{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.ov b small{display:block;font-weight:400;font-size:12.5px;color:var(--muted)}
+.ov b.is-late{color:var(--late)}.ov b.is-ok{color:var(--ok)}
+.more summary{cursor:pointer;color:var(--muted);font-weight:500;padding:4px 0}
+.more[open] summary{margin-bottom:8px}
+.endrow{display:flex;gap:10px;flex-wrap:wrap}
+/* Rooms quick map */
+.freebar{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px 12px;display:grid;gap:8px}
+.freebar h3{margin:0;font-size:14px;font-weight:600}.freebar h3 b{color:var(--f-ok);font-size:18px}
+.freelist{display:flex;flex-wrap:wrap;gap:6px}
+.fchip{border:1px solid var(--f-ok);background:var(--c-ok);color:var(--ok);border-radius:7px;padding:4px 9px;font-weight:600;font-size:13px;cursor:pointer}
+.fchip.soon{border-color:var(--f-soon);background:var(--c-soon);color:var(--soon);font-weight:500}
+.rviewsw{display:flex;gap:6px;justify-content:flex-end}
+.rviewsw button{border:1px solid var(--rule);background:var(--panel);color:var(--ink);border-radius:8px;padding:5px 12px;font-size:13px;cursor:pointer}
+.rviewsw button[aria-pressed="true"]{border-color:var(--ink);font-weight:600}
+.rmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.rtile{background:var(--panel);border:1px solid var(--rule);border-radius:9px;padding:7px;display:grid;gap:5px;align-content:start}
+.rtile.hasfree{border-color:var(--f-ok)}
+.rtile .rh{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--muted)}.rtile .rh b{font-size:15px;color:var(--ink)}
+.rbeds{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:4px}
+.bx{border:1px solid var(--rule);border-radius:6px;padding:4px 6px;text-align:left;font-size:11.5px;line-height:1.25;cursor:pointer;min-width:0;background:var(--tint);color:var(--ink)}
+.bx b{display:block;font-size:12px}.bx span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bx.e{background:var(--c-ok);border-color:var(--f-ok);color:var(--ok)}.bx.e span{font-weight:600}
+.bx.s{background:var(--c-soon);border-color:var(--f-soon);color:var(--soon)}
+/* Editable rooms + coloured blocks (2026-11-20) */
+.blk{border-left:6px solid var(--bc,var(--rule))}
+.bhd{display:flex;align-items:center;gap:7px;min-width:0}.bhd b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bbadge{display:inline-grid;place-items:center;flex:none;min-width:24px;height:24px;padding:0 5px;border-radius:7px;background:var(--bc);color:#fff;font-size:12px;font-weight:700;font-style:normal;line-height:1}
+.bsec{border:1px solid color-mix(in srgb,var(--bc) 35%,var(--rule));border-left:6px solid var(--bc);background:color-mix(in srgb,var(--bc) 7%,var(--panel));border-radius:12px;padding:10px;display:grid;gap:10px}
+.bsh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.bsh>b{font-size:16px;color:var(--bc)}
+.bsec .rtile{border-top:4px solid var(--bc)}
+.bdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bc);margin-right:6px;vertical-align:0}
+.reditbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.reditbar .ehint{margin:0;font-size:13px;color:var(--muted);flex:1 1 220px}
+.btn.edit{background:var(--lime);color:var(--on-lime)}
+.reditbar .btn{flex:0 0 auto;width:auto;min-width:110px}
+.etile{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--bc);border-radius:9px;padding:8px;display:grid;gap:6px;align-content:start;min-width:0}
+.eth{display:flex;justify-content:space-between;align-items:center;gap:6px}.eth b{font-size:15px;min-width:0;overflow-wrap:anywhere}
+.eacts{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.eacts .btn,.ebed .btn,.etile>.btn{min-height:28px;padding:0 8px;font-size:12px}
+.eacts .btn.ico{width:28px;padding:0}.btn.ico.del{color:var(--late,#d92d20)}
+.rmap.emap{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.ebeds{display:grid;gap:4px}
+.ebed{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;background:var(--tint);font-size:13px;min-width:0}
+.ebed.e{background:var(--c-ok)}
+.ebed .bl{font-weight:700;width:18px;flex:none}.ebed .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ebed.e .nm{color:var(--ok);font-weight:600}
+.eadd{border:2px dashed var(--bc);border-radius:9px;background:transparent;color:var(--bc);font-weight:700;min-height:90px;cursor:pointer;font-size:14px}
+.emove{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.emove select{border:1px solid var(--rule);border-radius:6px;padding:3px 6px;background:var(--panel);color:var(--ink);font-size:12px;min-width:0;flex:1}
+.bnew{border:2px dashed var(--muted);border-radius:12px;background:var(--panel);color:var(--ink);font-weight:700;min-height:56px;cursor:pointer;font-size:15px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swc{width:36px;height:36px;border-radius:50%;background:var(--bc);border:3px solid var(--panel);box-shadow:0 0 0 1px var(--rule);cursor:pointer}
+.swc[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}
+/* Calendar on phones: coloured bars instead of cut-off names; summary cards in one row */
+@media (max-width:700px){
+  .day .ev{font-size:0;height:6px;padding:0;border-radius:3px}
+  .calsum{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .calsum .stat{padding:8px 10px}.calsum .lab{font-size:12px}.calsum .n.money{font-size:16px}
+}
+.mlegend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}.mlegend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:1px solid var(--rule)}
+/* ---- Money page, Khatabook / Money Manager style (2026-11-19) ---- */
+.xwrap{display:grid;gap:14px;max-width:760px}
+.xsum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:14px 16px}
+.xsum>div{display:grid;gap:2px;min-width:0}.xsum .lab{font-size:13px;color:var(--muted)}
+.xsum b{font-size:20px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.xbtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.xbtns .btn{min-height:52px;font-size:16px;font-weight:700;border:0;justify-content:center}
+.xout{background:var(--late);color:#fff}.xin{background:var(--ok);color:#fff}
+.xform.out{border-top:4px solid var(--late)}.xform.in{border-top:4px solid var(--ok)}
+.xtabs{margin-bottom:6px}
+.xtabs button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.xday{padding-top:6px}
+.xdh{display:flex;justify-content:space-between;gap:10px;padding:8px 0 4px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--rule)}
+.xdh b{color:var(--ink)}.xdh>span{display:flex;gap:10px;font-weight:600;font-variant-numeric:tabular-nums}
+.xrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
+.xrow:last-child{border-bottom:0}
+.xcat{flex:1;min-width:0;display:grid}.xcat .sub{font-size:12.5px;color:var(--muted)}
+.xrow b{white-space:nowrap}
+.xdel{width:28px;flex:none;border:0;background:none;color:var(--muted);font-size:18px;line-height:1;border-radius:6px;min-height:28px}
+button.xdel:hover{background:var(--c-late);color:var(--late)}
+/* Ledger page */
+.lgname{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--ink);text-align:left;cursor:pointer}
+.lgname:hover{text-decoration:underline}
+.xsum .sub{font-size:12.5px;color:var(--muted)}
+.lgtabs{display:flex;flex-wrap:wrap}.lgtabs button{flex:1 1 auto}
 </style>
 </head>
 <body>
+<!-- Login and first-time setup. The password is stored only as a salted SHA-256 hash in the data file. -->
+<style>
+#login{position:fixed;inset:0;z-index:1000;background:var(--bg);display:grid;place-items:center;padding:16px;overflow:auto}
+#login form{background:var(--panel);border-radius:20px;padding:28px 22px;width:100%;max-width:400px;display:grid;gap:14px}
+#login form[hidden]{display:none}
+#login h2{font:600 24px/1.2 var(--display);margin:0 0 4px}
+#login p.sub{margin:-8px 0 0;color:var(--muted)}
+#login label{display:grid;gap:6px;font-weight:500}
+#login label.chk{display:flex;align-items:center;gap:10px;font-weight:400}
+#login label.chk input{width:22px;height:22px;min-height:0}
+#login input{min-height:52px;padding:0 14px;border:1px solid var(--rule);border-radius:12px;background:var(--panel);font:inherit}
+#login button{min-height:54px;border:0;border-radius:14px;background:var(--lime);color:var(--on-lime);font-weight:600;font-size:18px;cursor:pointer}
+#login .err{color:var(--late);margin:0;min-height:1.4em}
+</style>
+<div id="login">
+  <form id="setupForm" hidden autocomplete="off">
+    <h2>Welcome to Hostel Khata</h2>
+    <p class="sub">Set up your hostel. You will use this username and password every time you open the app.</p>
+    <label>Hostel name<input id="su-name" required></label>
+    <label>Username<input id="su-user" autocomplete="username" required></label>
+    <label>Password<input id="su-pass" type="password" autocomplete="new-password" required></label>
+    <label>Password again<input id="su-pass2" type="password" autocomplete="new-password" required></label>
+    <label class="chk"><input type="checkbox" id="su-sample">Fill with sample students so I can try the app first</label>
+    <p class="err" id="su-err" role="alert"></p>
+    <button type="submit">Start</button>
+  </form>
+  <form id="loginForm" hidden autocomplete="on">
+    <h2 id="lh">Hostel Khata</h2>
+    <label>Username<input id="lu" name="username" autocomplete="username" required></label>
+    <label>Password<input id="lp" name="password" type="password" autocomplete="current-password" required></label>
+    <p class="err" id="lerr" role="alert"></p>
+    <button type="submit">Log in</button>
+  </form>
+</div>
 
 
 <div class="shell">
@@ -299,6 +594,7 @@ a.btn{text-decoration:none}
 </div>
 <dialog id="pay"></dialog>
 <dialog id="ask"></dialog>
+<dialog id="rd"></dialog>
 <div id="toast" hidden></div>
 
 <script>
@@ -309,10 +605,11 @@ ne:['बैशाख','जेठ','असार','साउन','भदौ','अ
 function toIdx(y,m,d){let n=0;for(const yy of YRS)for(let i=0;i<12;i++){if(yy===y&&i===m-1)return n+d-1;n+=ML[yy][i]}return n}
 function fromIdx(n){for(const yy of YRS)for(let i=0;i<12;i++){if(n<ML[yy][i])return[yy,i+1,n+1];n-=ML[yy][i]}return[2084,12,30]}
 function addMonth(idx,jd){let[y,m]=fromIdx(idx);m++;if(m>12){m=1;y++}if(!ML[y])return idx+30;return toIdx(y,m,Math.min(jd,ML[y][m-1]))}
-const TODAY=toIdx(2083,7,23);
+// Real today: 23 Kartik 2083 = 9 Nov 2026 (AD), then count days from there on this computer's clock.
+const TODAY=(()=>{const a=new Date(2026,10,9),n=new Date();a.setHours(0,0,0,0);n.setHours(0,0,0,0);return toIdx(2083,7,23)+Math.round((n-a)/864e5)})();
 
 const T={en:{
-note:'Mockup with made-up students. Nothing here is saved and no message is really sent.',today:'Today',students:'Students',messages:'Messages',add:'New student',
+note:'Mockup. Nothing here is saved and no message is really sent.',today:'Today',students:'Students',messages:'Messages',add:'New student',
 search:'Search by name or room',all:'All',late:'Late',soon:'Due soon',paid:'Paid',
 cStudent:'Student',cFee:'Monthly fee',cLast:'Last paid',cNext:'Due date',cLeft:'Left to pay',cStay:'Stay',
 room:'Room',got:'Money received',notYet:'Not paid yet',none:'Nothing to pay',adv:'Advance',partPaid:'Part paid',
@@ -324,12 +621,12 @@ msgTo:'Message to',open:'Open WhatsApp',sentQ:'Did you press Send in WhatsApp?',
 mSoon:(n,a,d,h)=>`Namaste ${n}, your hostel fee of ${a} is due on ${d}. Thank you, ${h}.`,
 mToday:(n,a,d,h)=>`Namaste ${n}, your hostel fee of ${a} is due today. Thank you, ${h}.`,
 mLate:(n,a,d,h)=>`Namaste ${n}, your hostel fee of ${a} has been left to pay since ${d}. Please pay soon. Thank you, ${h}.`,
-back:'Back to students',phone:'Phone',guardian:'Guardian',joined:'Joined',ends:'Stay ends',payments:'Money paid',history:'Everything that happened',stayH:'Months of stay',noPay:'No payments yet.',
+totalPaid:'Total paid',payTimes:n=>n===1?'1 time':n+' times',moreD:'More details',back:'Back to students',phone:'Phone',guardian:'Guardian',joined:'Joined',ends:'Stay ends',payments:'Money paid',history:'Everything that happened',stayH:'Months of stay',noPay:'No payments yet.',
 lJoin:'Joined the hostel',lPaid:(a,h)=>`Paid ${a} by ${h}`,lMsg:'WhatsApp reminder sent',
 payTitle:n=>'Money received from '+n,amount:'How much?',full:'All left',oneMonth:'One month',how:'How was it paid?',cash:'Cash',bank:'Bank',save:'Save',cancel:'Cancel',after:a=>'Left after this: '+a,afterNone:'Nothing left after this.',amtErr:'Please write an amount above zero.',
-saved:(a,n)=>`Saved ${a} from ${n}.`,undo:'Undo',undone:'Removed.',addH:'New student',fName:'Name',fPhone:'Student phone',fGuard:'Guardian phone',fRoom:'Room',fFee:'Monthly fee',fDate:'Joining date',fStay:'How many months?',months:n=>n+' months',saveS:'Save student',nameErr:'Please write the name.',phoneErr:'Please write a 10-digit phone number.',feeErr:'Please write the monthly fee.',addedS:n=>n+' is added.',sentOk:n=>'Marked as sent to '+n+'.'
+saved:(a,n)=>`Saved ${a} from ${n}.`,undo:'Undo',undone:'Removed.',addH:'New student',fName:'Name',fPhone:'Student phone',fGuard:'Guardian phone',fRoom:'Room',fFee:'Monthly fee',fDate:'Joining date',fStay:'How long will they stay?',months:n=>n+' months',saveS:'Save student',nameErr:'Please write the name.',phoneErr:'Please write a 10-digit phone number.',feeErr:'Please write the monthly fee.',addedS:n=>n+' is added.',sentOk:n=>'Marked as sent to '+n+'.'
 },ne:{
-note:'यो नमुना हो, विद्यार्थीहरू काल्पनिक हुन्। यहाँ केही सेभ हुँदैन र सन्देश पनि जाँदैन।',today:'आज',students:'विद्यार्थी',messages:'सन्देश',add:'नयाँ विद्यार्थी',
+note:'यो नमुना हो। यहाँ केही सेभ हुँदैन र सन्देश पनि जाँदैन।',today:'आज',students:'विद्यार्थी',messages:'सन्देश',add:'नयाँ विद्यार्थी',
 search:'नाम वा कोठा खोज्नुहोस्',all:'सबै',late:'ढिला',soon:'तिर्ने बेला',paid:'तिरेको',
 cStudent:'विद्यार्थी',cFee:'मासिक शुल्क',cLast:'पछिल्लो पटक तिरेको',cNext:'तिर्ने दिन',cLeft:'बाँकी',cStay:'बसाइ',
 room:'कोठा',got:'पैसा आयो',notYet:'अहिलेसम्म तिरेको छैन',none:'बाँकी छैन',adv:'अग्रिम',partPaid:'केही तिरेको',
@@ -341,12 +638,16 @@ msgTo:'सन्देश पाउने',open:'व्हाट्सएप ख
 mSoon:(n,a,d,h)=>`नमस्ते ${n}, तपाईंको होस्टल शुल्क ${a} ${d} मा तिर्नुपर्ने छ। धन्यवाद, ${h}।`,
 mToday:(n,a,d,h)=>`नमस्ते ${n}, तपाईंको होस्टल शुल्क ${a} आज तिर्नुपर्ने छ। धन्यवाद, ${h}।`,
 mLate:(n,a,d,h)=>`नमस्ते ${n}, तपाईंको होस्टल शुल्क ${a} ${d} देखि बाँकी छ। कृपया चाँडै तिरिदिनुहोला। धन्यवाद, ${h}।`,
-back:'विद्यार्थी सूचीमा फर्कनुहोस्',phone:'फोन',guardian:'अभिभावक',joined:'आएको मिति',ends:'बसाइ सकिने',payments:'तिरेको पैसा',history:'सबै घटना',stayH:'बसाइका महिना',noPay:'अहिलेसम्म केही तिरेको छैन।',
+totalPaid:'जम्मा तिरेको',payTimes:n=>n+' पटक',moreD:'थप विवरण',back:'विद्यार्थी सूचीमा फर्कनुहोस्',phone:'फोन',guardian:'अभिभावक',joined:'आएको मिति',ends:'बसाइ सकिने',payments:'तिरेको पैसा',history:'सबै घटना',stayH:'बसाइका महिना',noPay:'अहिलेसम्म केही तिरेको छैन।',
 lJoin:'होस्टलमा आएको',lPaid:(a,h)=>`${h} बाट ${a} तिरेको`,lMsg:'व्हाट्सएप सन्देश पठाइएको',
 payTitle:n=>n+' बाट पैसा आयो',amount:'कति आयो?',full:'सबै बाँकी',oneMonth:'एक महिना',how:'कसरी तिर्नुभयो?',cash:'नगद',bank:'बैंक',save:'सेभ गर्नुहोस्',cancel:'रद्द',after:a=>'यसपछि बाँकी: '+a,afterNone:'यसपछि केही बाँकी रहँदैन।',amtErr:'कृपया शून्यभन्दा बढी रकम लेख्नुहोस्।',
-saved:(a,n)=>`${n} बाट ${a} सेभ भयो।`,undo:'फिर्ता लिनुहोस्',undone:'हटाइयो।',addH:'नयाँ विद्यार्थी',fName:'नाम',fPhone:'विद्यार्थीको फोन',fGuard:'अभिभावकको फोन',fRoom:'कोठा',fFee:'मासिक शुल्क',fDate:'आएको मिति',fStay:'कति महिना बस्ने?',months:n=>n+' महिना',saveS:'विद्यार्थी सेभ गर्नुहोस्',nameErr:'कृपया नाम लेख्नुहोस्।',phoneErr:'कृपया १० अङ्कको फोन नम्बर लेख्नुहोस्।',feeErr:'कृपया मासिक शुल्क लेख्नुहोस्।',addedS:n=>n+' थपियो।',sentOk:n=>n+' लाई पठाएको भनेर राखियो।'
+saved:(a,n)=>`${n} बाट ${a} सेभ भयो।`,undo:'फिर्ता लिनुहोस्',undone:'हटाइयो।',addH:'नयाँ विद्यार्थी',fName:'नाम',fPhone:'विद्यार्थीको फोन',fGuard:'अभिभावकको फोन',fRoom:'कोठा',fFee:'मासिक शुल्क',fDate:'आएको मिति',fStay:'कति समय बस्ने?',months:n=>n+' महिना',saveS:'विद्यार्थी सेभ गर्नुहोस्',nameErr:'कृपया नाम लेख्नुहोस्।',phoneErr:'कृपया १० अङ्कको फोन नम्बर लेख्नुहोस्।',feeErr:'कृपया मासिक शुल्क लेख्नुहोस्।',addedS:n=>n+' थपियो।',sentOk:n=>n+' लाई पठाएको भनेर राखियो।'
 }};
 let lang='en';
+T.en.gotS='Receive';T.ne.gotS='पैसा आयो';
+T.en.blkFree=n=>n+' empty';T.ne.blkFree=n=>n+' खाली';
+Object.assign(T.en,{fPaidQ:'Paid already?',fPaidYes:'Paid',fPaidAmt:'How much was paid?'});Object.assign(T.ne,{fPaidQ:'पहिले नै तिर्नुभयो?',fPaidYes:'तिर्नुभयो',fPaidAmt:'कति तिर्नुभयो?'});
+Object.assign(T.en,{forTime:'Or for'});Object.assign(T.ne,{forTime:'वा'});
 const t=(k,...a)=>{const v=T[lang][k];return typeof v==='function'?v(...a):v};
 const DEV='०१२३४५६७८९';
 const num=s=>lang==='ne'?String(s).replace(/\d/g,d=>DEV[d]):String(s);
@@ -373,30 +674,32 @@ function make(name,ph,gd,room,fee,y,m,d,months,state){
   pays.slice().reverse().forEach(p=>log.push({d:p.d,k:'lPaid',a:p.a,h:p.h}));
   return{id:nextId++,name,ph,gd,room,fee,join,jd:d,months,left,lateSince,nextDue:addMonth(last,d),pays,log,credit:0,sent:false};
 }
-let S=[
-make('Sita Gurung','9800000001','9800000101','101-A',12000,2083,1,9,12,'paid'),
-make('Bibek Thapa','9800000002','9800000102','204-B',10500,2083,3,15,6,'late1'),
-make('Anisha Poudel','9800000003','9800000103','102-A',12000,2082,11,20,12,'part'),
-make('Roshan Tamang','9800000004','9800000104','205-A',9500,2083,5,2,12,'late2'),
-make('Kabita Adhikari','9800000005','9800000105','103-B',14000,2083,2,23,12,'today'),
-make('Suman Shrestha','9800000006','9800000106','206-A',10500,2083,4,25,6,'paid'),
-make('Pooja Karki','9800000007','9800000107','101-B',12000,2083,6,26,3,'paid'),
-make('Nabin Magar','9800000008','9800000108','207-B',9500,2082,8,5,12,'paid'),
-make('Rina Rai','9800000009','9800000109','104-A',12000,2083,1,30,12,'paid'),
-make('Dipesh KC','9800000010','9800000110','208-A',10500,2083,7,3,6,'paid')];
-let BEDS=['101-A','101-B','102-A','102-B','103-A','103-B','104-A','204-A','204-B','205-A','206-A','207-A','207-B','208-A'];
+let S=[];
+let RB={};
+// Blocks: id (letter), name ('' = "Block <id>"), col (colour). Owner can add, rename, recolour, delete.
+const BCOL=['#2563eb','#16a34a','#d97706','#9333ea','#db2777','#0891b2','#dc2626','#4b5563'];
+let BLK=[{id:'A',name:'',col:BCOL[0]}];
+const blkById=id=>BLK.find(b=>b.id===id)||{id,name:'',col:'#4b5563'};
+const blockOf=r=>BLK.some(b=>b.id===RB[r])?RB[r]:(BLK[0]?BLK[0].id:'A');
+const bname=b=>b.name||`${t('block')} ${b.id}`;
+const bBadge=b=>{if(!b.name)return b.id;const m=b.name.trim().match(/^(?:block|ब्लक)\s+(\S{1,3})$/i);return m?m[1]:(initials(b.name)||b.id)};
+const roomSort=(a,b)=>a.localeCompare(b,undefined,{numeric:true});
+let BEDS=[];
 let cfg={name:'Hamro Hostel',billing:'join',billDay:1,soonDays:3,endSoon:60,defaultFee:12000,
- mods:{msgs:true,cal:true,rooms:true,expenses:false,deposit:true},
+ mods:{msgs:true,cal:true,rooms:true,expenses:true,deposit:true},
  pay:{cash:true,esewa:true,khalti:true,bank:true},
  fields:{gd:true,college:false,address:false},custom:[],
  tpl:{en:{soon:'Namaste {name}, your hostel fee of {amount} is due on {date}. Thank you, {hostel}.',today:'Namaste {name}, your hostel fee of {amount} is due today. Thank you, {hostel}.',late:'Namaste {name}, your hostel fee of {amount} has been left to pay since {date}. Please pay soon. Thank you, {hostel}.'},
  ne:{soon:'नमस्ते {name}, तपाईंको होस्टल शुल्क {amount} {date} मा तिर्नुपर्ने छ। धन्यवाद, {hostel}।',today:'नमस्ते {name}, तपाईंको होस्टल शुल्क {amount} आज तिर्नुपर्ने छ। धन्यवाद, {hostel}।',late:'नमस्ते {name}, तपाईंको होस्टल शुल्क {amount} {date} देखि बाँकी छ। कृपया चाँडै तिरिदिनुहोला। धन्यवाद, {hostel}।'}}};
-let EXP=[{d:TODAY-1,what:'Electricity',a:12000},{d:TODAY-3,what:'Food and groceries',a:18000},{d:TODAY-8,what:'Internet',a:2500}];
+let EXP=[],expId=1;
+const CATS={out:['groc','veg','milk','gas','elec','water','net','salary','repair','other'],in:['sell','laundry','oin']};
 function jdOf(s){return cfg.billing==='fixed'?cfg.billDay:s.jd}
 I.cal='<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
 I.bed='<svg viewBox="0 0 24 24"><path d="M3 19v-13M3 15h18v4M21 15v-3a3 3 0 0 0-3-3H10v6"/><circle cx="6.5" cy="11" r="1.6"/></svg>';
+I.edit='<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>';
+I.trash='<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
 I.next='<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
-let calY=2083,calM=7,calSel=TODAY,roomF='all',bookBed=null;
+let calY=fromIdx(TODAY)[0],calM=fromIdx(TODAY)[1],calSel=TODAY,roomF='all',blockF='all',roomView='map',bookBed=null,roomEdit=false;
 
 function status(s){
   if(s.left>0)return s.lateSince<TODAY?'late':'today';
@@ -405,8 +708,8 @@ function status(s){
 const ORDER={late:0,today:1,soon:2,paid:3};
 const elapsed=s=>{let n=0,p=s.join;for(;;){const x=addMonth(p,s.jd);if(x>TODAY||x===p)break;n++;p=x}return n};
 const mLeft=s=>s.months-elapsed(s);
-const endIdx=s=>{let p=s.join;for(let i=0;i<s.months;i++)p=addMonth(p,s.jd);return p};
-const meter=(pct,cls,label)=>`<span class="meter ${cls}" role="img" aria-label="${esc(label)}"><i style="width:${Math.round(Math.max(0,Math.min(100,pct)))}%"></i></span>`;
+const endIdx=s=>{if(s.days)return s.join+s.days;let p=s.join;for(let i=0;i<s.months;i++)p=addMonth(p,s.jd);return p};
+const meter=()=>''; // progress bars removed for a simpler look; the coloured word already says the same thing
 function dueMeter(s){
   const st=status(s);
   if(st==='late')return meter(100,'late',t('late'));
@@ -416,21 +719,22 @@ function dueMeter(s){
 }
 const stayDays=s=>endIdx(s)-TODAY;
 const isEnding=s=>stayDays(s)<=cfg.endSoon;
-const stayText=s=>(isEnding(s)?t('daysLeft',Math.max(stayDays(s),0)):t('monthsLeft',mLeft(s))).replace(/\d+/g,num);
+const stayText=s=>(isEnding(s)||s.days?t('daysLeft',Math.max(stayDays(s),0)):t('monthsLeft',mLeft(s))).replace(/\d+/g,num);
 function stayMeter(s){
   const total=Math.max(endIdx(s)-s.join,1);
   return meter(Math.max(5,(TODAY-s.join)/total*100),isEnding(s)?'soon':'stay',stayText(s));
 }
-function dueCell(s){
+function dueTag(s){
   const st=status(s);
-  if(st==='late'){const n=TODAY-s.lateSince;return`${fmtS(s.lateSince)}<br><span class="tag late">${t('daysLate',n).replace(/\d+/g,num)}</span>${dueMeter(s)}`}
-  if(st==='today')return`${fmtS(TODAY)}<br><span class="tag soon">${t('dueToday')}</span>${dueMeter(s)}`;
-  if(st==='soon')return`${fmtS(s.nextDue)}<br><span class="tag soon">${t('inDays',s.nextDue-TODAY).replace(/\d+/g,num)}</span>${dueMeter(s)}`;
-  return`${fmtS(s.nextDue)}<br><span class="tag ok">${t('paidDays',s.nextDue-TODAY).replace(/\d+/g,num)}</span>${dueMeter(s)}`;
+  if(st==='late')return`<span class="tag late">${t('daysLate',TODAY-s.lateSince).replace(/\d+/g,num)}</span>`;
+  if(st==='today')return`<span class="tag soon">${t('dueToday')}</span>`;
+  if(st==='soon')return`<span class="tag soon">${t('inDays',s.nextDue-TODAY).replace(/\d+/g,num)}</span>`;
+  return`<span class="tag ok">${t('paid')}</span>`;
 }
+const dueCell=s=>`${dueTag(s)}<span class="sub">${fmtS(status(s)==='late'?s.lateSince:status(s)==='today'?TODAY:s.nextDue)}</span>`;
 const queue=()=>S.filter(s=>status(s)!=='paid').sort((a,b)=>ORDER[status(a)]-ORDER[status(b)]);
 
-let view='list',filter='topay',q='',cur=null,wa={id:null,step:'ready'},payState=null,stay=12;
+let view='list',filter='topay',q='',cur=null,wa={id:null,step:'ready'},payState=null,stay=12,stayCustom=false;
 const app=document.getElementById('app');
 
 function renderNav(){
@@ -438,12 +742,13 @@ function renderNav(){
   const on=activeNav(),m=cfg.mods;
   const item=(v,icon,label,extra='')=>`<button type="button" class="nav" data-act="go" data-v="${v}" ${on===v?'aria-current="page"':''}>${icon}${label}${extra}</button>`;
   document.getElementById('nav').innerHTML=
-   item('list',I.grid,t('dashboard'))+
+   item('list',I.home,t('dashboard'))+
    item('people',I.people,t('students'))+
+   item('ledger',I.book,t('ledger'))+
    (m.msgs?item('msgs',I.msg,t('messages'),pend?`<span class="badge">${num(pend)}</span>`:''):'')+
    (m.cal?item('cal',I.cal,t('calendar')):'')+
    (m.rooms?item('rooms',I.bed,t('rooms')):'')+
-   (m.expenses?item('expenses',I.cash,t('expenses')):'')+
+   (m.expenses?item('expenses',I.cash,t('navMoney')):'')+
    item('settings',I.gear,t('settings'));
 }
 function renderRows(){
@@ -459,13 +764,11 @@ function renderRows(){
     const leftTxt=s.left?`<span class="left ${st==='late'?'is-late':''}">${rs(s.left)}</span>${s.left<s.fee?`<span class="sub">${t('partPaid')}</span>${meter((s.fee-s.left)/s.fee*100,'ok',t('partPaid'))}`:''}`:s.credit?`<span class="sub">${t('adv')} ${rs(s.credit)}</span>`:`<span class="sub">${t('none')}</span>`;
     return`<div class="row">
     <button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face ${st}">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub ${isEnding(s)?'warn':''}">${t('room')} ${num(esc(s.room))} · ${stayText(s)}</span></span></button>
-    <div class="cell" data-l="${t('cFee')}">${rs(s.fee)}</div>
-    <div class="cell" data-l="${t('cLast')}">${lp?`${fmtS(lp.d)}<span class="sub">${rs(lp.a)}</span>`:`<span class="sub">${t('notYet')}</span>`}</div>
     <div class="cell" data-l="${t('cLeft')}">${leftTxt}</div>
     <div class="cell" data-l="${t('cNext')}">${dueCell(s)}</div>
-    <div class="acts"><button type="button" class="btn pri" data-act="pay" data-id="${s.id}">${I.cash}${t('got')}</button><button type="button" class="btn wa" data-act="wa" data-id="${s.id}" aria-label="WhatsApp ${esc(s.name)}" ${st==='paid'||!cfg.mods.msgs?'disabled':''}>${I.msg}</button></div>
+    <div class="acts"><button type="button" class="btn pri" data-act="pay" data-id="${s.id}">${t('gotS')}</button><button type="button" class="btn wa ico" data-act="wa" data-id="${s.id}" aria-label="WhatsApp ${esc(s.name)}" title="WhatsApp" ${st==='paid'||!cfg.mods.msgs?'disabled':''}>${I.msg}</button></div>
     </div>`}).join('');
-  document.getElementById('rows').innerHTML=`<div class="row head"><div>${t('cStudent')}</div><div>${t('cFee')}</div><div>${t('cLast')}</div><div>${t('cLeft')}</div><div>${t('cNext')}</div><div></div></div>`+(body||`<div class="empty">${t('noMatch')}</div>`);
+  document.getElementById('rows').innerHTML=`<div class="row head"><div>${t('cStudent')}</div><div>${t('cLeft')}</div><div>${t('cNext')}</div><div></div></div>`+(body||`<div class="empty">${t('noMatch')}</div>`);
 }
 function renderList(){
   const pick=k=>S.filter(s=>{const st=status(s);return k==='topay'?st!=='paid':k==='soon'?st==='soon'||st==='today':st===k});
@@ -492,8 +795,8 @@ function renderMsgs(){
   if(!all.find(s=>s.id===wa.id)||(all.find(s=>s.id===wa.id).sent&&pend.length)){wa.id=pend[0]?.id??null;wa.step='ready'}
   const s=S.find(x=>x.id===wa.id);
   const queueHtml=all.map(x=>{const st=status(x);return`<button type="button" class="q ${x.sent?'done':''}" data-act="pick" data-id="${x.id}" aria-current="${x.id===wa.id}"><span class="face ${st}">${esc(initials(x.name))}</span><span style="min-width:0"><span class="name" style="text-decoration:none">${esc(x.name)}</span><span class="sub">${rs(x.left||x.fee)}</span></span><span class="end">${x.sent?`<span class="tag ok">${t('sentTag')}</span>`:`<span class="tag ${st==='late'?'late':'soon'}">${t(st==='late'?'late':'soon')}</span>`}</span></button>`}).join('');
-  const right=!pend.length&&(!s||s.sent)?`<div class="ask">${t('qDone')}</div>`:s?`<h2>${t('msgTo')}: ${esc(s.name)}</h2><span class="sub">${t('testTo')}</span><div class="bubble">${esc(msgFor(s))}</div>`+
-   (wa.step==='ready'?`<a class="btn wa big" href="${waLink(msgFor(s))}" target="_blank" rel="noopener" data-act="waopen">${I.msg}${t('open')}</a><span class="sub">${t('demo')}</span>`:`<div class="ask">${t('sentQ')}</div><div class="row2"><button type="button" class="btn wa big" data-act="wayes">${t('yes')}</button><button type="button" class="btn sec big" data-act="wano">${t('no')}</button></div>`):'';
+  const right=!pend.length&&(!s||s.sent)?`<div class="ask">${t('qDone')}</div>`:s?`<h2>${t('msgTo')}: ${esc(s.name)}</h2><span class="sub">${num(esc(s.ph))}</span><div class="bubble">${esc(msgFor(s))}</div>`+
+   (wa.step==='ready'?`<a class="btn wa big" href="${waLink(msgFor(s),s.ph)}" target="_blank" rel="noopener" data-act="waopen">${I.msg}${t('open')}</a><span class="sub">${t('demo')}</span>`:`<div class="ask">${t('sentQ')}</div><div class="row2"><button type="button" class="btn wa big" data-act="wayes">${t('yes')}</button><button type="button" class="btn sec big" data-act="wano">${t('no')}</button></div>`):'';
   app.innerHTML=`<p class="headline">${pend.length?t('qTitle',pend.length).replace(/\d+/g,num):t('qDone')}</p><div class="two"><div class="card" style="gap:4px">${queueHtml||`<div class="empty">${t('qDone')}</div>`}</div><div class="card">${right}</div></div>`;
 }
 function renderOne(){
@@ -501,37 +804,45 @@ function renderOne(){
   const past=!!s.leftOn,st=status(s),ml=mLeft(s);
   const lines=s.pays.length?s.pays.map((p,i)=>`<div class="line"><span><b>${rs(p.a)}</b> &nbsp;${t(p.h)}</span><span>${fmt(p.d)}<button type="button" class="mini" data-act="receipt" data-id="${s.id}" data-v="${i}">${t('receipt')}</button></span></div>`).join(''):`<span class="sub">${t('noPay')}</span>`;
   const logs=s.log.slice().sort((a,b)=>b.d-a.d).map(l=>`<div class="line"><span>${l.k==='lPaid'?t('lPaid',rs(l.a),t(l.h)):l.k==='lSettle'?t('lSettle',rs(l.a),rs(l.b)):t(l.k)}</span><span>${fmt(l.d)}</span></div>`).join('');
-  const leftCls=!s.left?'c-ok':st==='late'||past?'c-late':'c-soon';
-  const payBtn=`<button type="button" class="btn pri big" data-act="pay" data-id="${s.id}">${I.cash}${t('got')}</button>`;
-  const acts=past?(s.left?payBtn:''):payBtn+(st!=='paid'&&cfg.mods.msgs?`<button type="button" class="btn wa big" data-act="wa" data-id="${s.id}">${I.msg}WhatsApp</button>`:'')+`<button type="button" class="btn sec big" data-act="finish" data-id="${s.id}">${I.flag}${t('finish')}</button>`;
+  const payBtn=`<button type="button" class="btn pri" data-act="pay" data-id="${s.id}">${I.cash}${t('got')}</button>`;
+  const acts=past?(s.left?payBtn:''):payBtn+(st!=='paid'&&cfg.mods.msgs?`<button type="button" class="btn wa" data-act="wa" data-id="${s.id}">${I.msg}WhatsApp</button>`:'');
+  const paidSum=s.pays.reduce((x,p)=>x+p.a,0);
+  const row=(lab,val,cls='',small='')=>`<div><span>${lab}</span><b class="${cls}">${val}${small?`<small>${small}</small>`:''}</b></div>`;
+  const ov=[
+    row(t('joined'),fmt(s.join)),
+    past?row(t('leftOn'),fmt(s.leftOn),'',t('stayed',s.stayed).replace(/\d+/g,num)):row(t('ends'),fmt(endIdx(s)),isEnding(s)?'':'',stayText(s)),
+    row(t('cFee'),rs(s.fee)),
+    row(t('totalPaid'),rs(paidSum),'is-ok',s.pays.length?t('payTimes',s.pays.length).replace(/\d+/g,num):''),
+    row(t('cLeft'),s.left?rs(s.left):t('none'),s.left?(st==='late'||past?'is-late':''):''),
+    past?'':row(t('cNext'),fmt(s.left?s.lateSince:s.nextDue),'',dueTag(s))
+  ].join('');
+  const more=[
+    cfg.fields.gd&&s.gd?row(t('guardian'),num(esc(s.gd))):'',
+    cfg.mods.deposit&&s.dep?row(t('deposit'),rs(s.dep)):'',
+    ...Object.entries(s.extra||{}).filter(([,v])=>v).map(([k,v])=>row(esc(k),esc(v)))
+  ].join('');
   app.innerHTML=`<div><button type="button" class="btn sec" data-act="go" data-v="${backTo}">${I.back}${t('back')}</button></div>
-  <div class="card"><div class="hero"><span class="face ${past?'':st}">${esc(initials(s.name))}</span><div style="min-width:0"><h2>${esc(s.name)}</h2><span class="sub">${t('room')} ${num(esc(s.room))}${past?' · '+t('pastTag'):''}</span></div>
+  <div class="card one"><div class="hero"><span class="face ${past?'':st}">${esc(initials(s.name))}</span><div style="min-width:0"><h2>${esc(s.name)}</h2><span class="sub">${t('room')} ${num(esc(s.room))} · ${num(esc(s.ph))}${past?' · '+t('pastTag'):''}</span></div>
   <div class="acts">${acts}</div></div>
-  <div class="tri">
-   <div class="stat ${leftCls}"><span class="lab">${t('cLeft')}</span><span class="n">${s.left?rs(s.left):t('none')}</span>${s.left&&s.left<s.fee?meter((s.fee-s.left)/s.fee*100,'ok',t('partPaid')):''}</div>
-   <div class="stat c-all"><span class="lab">${past?t('leftOn'):t('cNext')}</span><span class="n">${past?fmtS(s.leftOn):fmtS(s.left?s.lateSince:s.nextDue)}</span>${past?'':dueMeter(s)}</div>
-   <div class="stat ${!past&&isEnding(s)?'c-soon':'c-all'}"><span class="lab">${past?t('stayedH'):t('cStay')}</span><span class="n">${past?t('stayed',s.stayed).replace(/\d+/g,num):stayText(s)}</span>${past?'':stayMeter(s)}</div>
-  </div>
-  <div class="facts">
-   <div class="fact"><b>${rs(s.fee)}</b><span>${t('cFee')}</span></div>
-   <div class="fact"><b>${fmt(s.join)}</b><span>${t('joined')}</span></div>
-   ${past?'':`<div class="fact"><b>${fmt(endIdx(s))}</b><span>${t('ends')}</span></div>`}
-   <div class="fact"><b>${num(esc(s.ph))}</b><span>${t('phone')}</span></div>
-   ${cfg.fields.gd?`<div class="fact"><b>${num(esc(s.gd))}</b><span>${t('guardian')}</span></div>`:''}
-   ${cfg.mods.deposit&&s.dep?`<div class="fact"><b>${rs(s.dep)}</b><span>${t('deposit')}</span></div>`:''}
-   ${Object.entries(s.extra||{}).filter(([,v])=>v).map(([k,v])=>`<div class="fact"><b>${esc(v)}</b><span>${esc(k)}</span></div>`).join('')}
-  </div></div>
-  <div class="two"><div class="card" style="gap:0"><h2 style="margin-bottom:8px">${t('payments')}</h2>${lines}</div><div class="card" style="gap:0"><h2 style="margin-bottom:8px">${t('history')}</h2>${logs}</div></div>
-  <div><button type="button" class="btn del" data-act="delete" data-id="${s.id}">${I.trash}${t('del')}</button></div>`;
+  <div class="ov">${ov}</div></div>
+  <div class="card" style="gap:0"><h2 style="margin-bottom:8px">${t('payments')}</h2>${lines}</div>
+  <details class="card more"><summary>${t('moreD')}</summary>${more?`<div class="ov" style="margin-bottom:14px">${more}</div>`:''}<h2 style="margin:4px 0 8px;font-size:16px">${t('history')}</h2>${logs}</details>
+  <div class="endrow">${past?'':`<button type="button" class="btn sec" data-act="finish" data-id="${s.id}">${I.flag}${t('finish')}</button>`}<button type="button" class="btn del" data-act="delete" data-id="${s.id}">${I.trash}${t('del')}</button></div>`;
 }
+const freeIn=L=>freeBeds().filter(b=>blockOf(b.split('-')[0])===L);
+const bedOpts=L=>freeIn(L).map(r=>`<option ${r===bookBed?'selected':''}>${esc(r)}</option>`).join('');
 function renderAdd(){
-  const[y,m,d]=fromIdx(TODAY);
+  const[y,m,d]=fromIdx(TODAY);addPaid=false;addHow=Object.keys(cfg.pay).find(h=>cfg.pay[h])||'cash';
+  addBlk=bookBed?blockOf(bookBed.split('-')[0]):blockF!=='all'&&BLK.some(b=>b.id===blockF)?blockF:(BLK.find(b=>freeIn(b.id).length)||BLK[0]||{}).id;
   app.innerHTML=`<div><button type="button" class="btn sec" style="background:var(--panel)" data-act="go" data-v="${bookBed?'rooms':'people'}">${I.back}${t('back')}</button></div><div class="card"><form class="f" id="addf" novalidate>
   <label class="fld">${t('fName')}<input id="a-name" autocomplete="off"></label>
   <label class="fld">${t('fPhone')}<input id="a-ph" inputmode="numeric" maxlength="10"></label>
   ${cfg.fields.gd?`<label class="fld">${t('fGuard')}<input id="a-gd" inputmode="numeric" maxlength="10"></label>`:''}
-  <label class="fld">${t('fRoom')}<select id="a-room">${freeBeds().map(r=>`<option ${r===bookBed?'selected':''}>${r}</option>`).join('')}</select></label>
+  <label class="fld">${t('block')}<select id="a-block">${BLK.map(B=>`<option value="${esc(B.id)}" ${B.id===addBlk?'selected':''}>${esc(bname(B))} (${t('blkFree',num(freeIn(B.id).length))})</option>`).join('')}</select></label>
+  <label class="fld">${t('fRoom')}<select id="a-room">${bedOpts(addBlk)}</select></label>
   <label class="fld">${t('fFee')}<input id="a-fee" inputmode="numeric" value="${cfg.defaultFee}"></label>
+  <div class="fld" style="display:grid;gap:4px;font-weight:600;grid-column:1/-1"><span>${t('fPaidQ')}</span><div class="chips"><button type="button" class="chip" data-act="apaid" data-v="0" aria-pressed="true">${t('notYet')}</button><button type="button" class="chip" data-act="apaid" data-v="1" aria-pressed="false">${t('fPaidYes')}</button></div>
+    <div class="stayc" id="a-paidc" style="grid-template-columns:1fr;max-width:420px" hidden><label style="display:grid;gap:4px">${t('fPaidAmt')}<input id="a-paid" inputmode="numeric"></label><div class="chips">${Object.keys(cfg.pay).filter(h=>cfg.pay[h]).map(h=>`<button type="button" class="chip" data-act="ahow" data-v="${h}" aria-pressed="${addHow===h}">${h==='esewa'?'eSewa':h==='khalti'?'Khalti':t(h)}</button>`).join('')}</div></div></div>
   ${cfg.mods.deposit?`<label class="fld">${t('fDeposit')}<input id="a-dep" inputmode="numeric" value="5000"></label>`:''}
   ${cfg.fields.college?`<label class="fld">${t('fCollege')}<input id="a-college"></label>`:''}
   ${cfg.fields.address?`<label class="fld">${t('fAddress')}<input id="a-address"></label>`:''}
@@ -539,9 +850,10 @@ function renderAdd(){
   <div class="fld" style="display:grid;gap:4px;font-weight:600"><span id="dl">${t('fDate')}</span><div class="date3" role="group" aria-labelledby="dl">
     <select id="a-d" aria-label="Day">${Array.from({length:32},(_,i)=>`<option value="${i+1}" ${i+1===d?'selected':''}>${num(i+1)}</option>`).join('')}</select>
     <select id="a-m" aria-label="Month">${MN[lang].map((n,i)=>`<option value="${i+1}" ${i+1===m?'selected':''}>${n}</option>`).join('')}</select>
-    <select id="a-y" aria-label="Year">${[2082,2083].map(v=>`<option value="${v}" ${v===y?'selected':''}>${num(v)}</option>`).join('')}</select>
+    <select id="a-y" aria-label="Year">${YRS.map(v=>`<option value="${v}" ${v===y?'selected':''}>${num(v)}</option>`).join('')}</select>
   </div></div>
-  <div class="fld" style="display:grid;gap:4px;font-weight:600;grid-column:1/-1"><span>${t('fStay')}</span><div class="chips">${[3,6,9,12].map(v=>`<button type="button" class="chip" data-act="stay" data-v="${v}" aria-pressed="${stay===v}">${t('months',v).replace(/\d+/g,num)}</button>`).join('')}</div></div>
+  <div class="fld" style="display:grid;gap:4px;font-weight:600;grid-column:1/-1"><span>${t('fStay')}</span><div class="chips">${[3,6,9,12].map(v=>`<button type="button" class="chip" data-act="stay" data-v="${v}" aria-pressed="${!stayCustom&&stay===v}">${t('months',v).replace(/\d+/g,num)}</button>`).join('')}<button type="button" class="chip" data-act="stay" data-v="c" aria-pressed="${stayCustom}">${t('stayCustom')}</button></div>
+    <div class="stayc" id="a-stayc" ${stayCustom?'':'hidden'}><input id="a-stayn" inputmode="numeric" maxlength="3" aria-label="${t('stayNum')}" placeholder="${t('stayNum')}"><select id="a-stayu" aria-label="${t('stayUnit')}"><option value="d">${t('uDays')}</option><option value="m">${t('uMonths')}</option></select></div></div>
   <div class="err" id="a-err" role="alert" style="grid-column:1/-1"></div>
   <div style="grid-column:1/-1"><button class="btn pri big" type="submit">${t('saveS')}</button></div></form></div>`;
 }
@@ -568,60 +880,179 @@ const EV_RANK={late:0,today:1,coming:2,end:3,paid:4};
 const EV_CLS={late:'c-late',today:'c-soon',coming:'c-soon',end:'c-all',paid:'c-ok'};
 const adDate=i=>new Date(Date.UTC(2026,10,9+(i-TODAY)));
 function renderCal(){
-  const first=toIdx(calY,calM,1),len=ML[calY][calM-1],blanks=((1+(first-TODAY))%7+7)%7;
+  const first=toIdx(calY,calM,1),len=ML[calY][calM-1],blanks=((1+(first-TODAY))%7+7)%7,inMon=d=>d>=first&&d<first+len;
   const ev=monthEvents(calY,calM).sort((a,b)=>EV_RANK[a.k]-EV_RANK[b.k]);
   const short=d=>d.toLocaleString('en',{month:'short',timeZone:'UTC'});
   const a1=adDate(first),a2=adDate(first+len-1);
+  // money owed by each event: a late student counts once (their full balance), a coming due counts one fee
+  const owedOf=(e,seen)=>e.k==='coming'?Math.max(e.s.fee-(e.d===e.s.nextDue?e.s.credit:0),0):(e.k==='late'||e.k==='today')&&!seen.has(e.s.id)?(seen.add(e.s.id),e.s.left):0;
+  const seen=new Set(),toGet=ev.reduce((x,e)=>x+owedOf(e,seen),0);
+  const fees=allPays().filter(x=>inMon(x.p.d)),gotSum=fees.reduce((x,f)=>x+f.p.a,0);
+  const ends=ev.filter(e=>e.k==='end').length;
+  const kAmt=n=>num(n>=1000?(Math.round(n/100)/10)+'k':n);
   const cells=Array.from({length:blanks},()=>'<div></div>').join('')+Array.from({length:len},(_,n)=>{
     const i=first+n,day=ev.filter(e=>e.d===i),show=day.slice(0,3),extra=day.length-show.length;
-    return`<button type="button" class="day ${i===TODAY?'now':''}" data-act="day" data-v="${i}" aria-pressed="${i===calSel}" aria-label="${fmt(i)}"><span class="top2"><span class="d">${num(n+1)}</span><span class="ad">${adDate(i).getUTCDate()}</span></span>${show.map(e=>`<span class="ev ${EV_CLS[e.k]}">${esc(e.s.name.split(' ')[0])}</span>`).join('')}${extra>0?`<span class="more">+${num(extra)}</span>`:''}</button>`}).join('');
+    const dueAmt=day.filter(e=>e.k==='late'||e.k==='today'||e.k==='coming').reduce((x,e)=>x+(e.k==='coming'?e.s.fee:e.s.left),0);
+    const hasLate=day.some(e=>e.k==='late'||e.k==='today');
+    return`<button type="button" class="day ${i===TODAY?'now':''} ${i<TODAY?'past':''}" data-act="day" data-v="${i}" aria-pressed="${i===calSel}" aria-label="${fmt(i)}${dueAmt?', '+rs(dueAmt):''}"><span class="top2"><span class="d">${num(n+1)}</span><span class="ad">${adDate(i).getUTCDate()}</span></span>${dueAmt?`<span class="damt ${hasLate?'is-late':''}">${kAmt(dueAmt)}</span>`:''}${show.map(e=>`<span class="ev ${EV_CLS[e.k]}">${esc(e.s.name.split(' ')[0])}</span>`).join('')}${extra>0?`<span class="more">+${num(extra)}</span>`:''}</button>`}).join('');
   const sel=ev.filter(e=>e.d===calSel);
   const tagOf=e=>e.k==='late'?`<span class="tag late">${t('late')}</span>`:e.k==='today'?`<span class="tag soon">${t('dueToday')}</span>`:e.k==='coming'?`<span class="tag soon">${t('lDue')}</span>`:e.k==='paid'?`<span class="tag ok">${t('paid')}</span>`:`<span class="tag" style="background:var(--c-all)">${t('lEnd')}</span>`;
   const faceOf={late:'late',today:'soon',coming:'soon',paid:'paid',end:''};
   const detail=sel.length?sel.map(e=>{
-    const s=e.s,amt=e.k==='late'?s.left:s.fee,canPay=e.k==='late'||e.k==='today'||e.k==='coming';
-    return`<div class="dl"><button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face ${faceOf[e.k]}">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))}</span></span></button><div class="tagrow">${tagOf(e)}${e.k==='end'?'':`<b>${rs(amt)}</b>`}</div>${canPay?`<button type="button" class="btn pri" data-act="pay" data-id="${s.id}">${I.cash}${t('got')}</button>`:''}</div>`}).join(''):`<div class="empty" style="padding:24px 8px">${t('nothing')}</div>`;
-  app.innerHTML=`<div class="calwrap"><div class="card">
+    const s=e.s,amt=e.k==='late'||e.k==='today'?s.left:s.fee,canPay=e.k==='late'||e.k==='today'||e.k==='coming',canWa=canPay&&cfg.mods.msgs&&status(s)!=='paid';
+    return`<div class="dl"><button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face ${faceOf[e.k]}">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))}</span></span></button><div class="tagrow">${tagOf(e)}${e.k==='end'?'':`<b>${rs(amt)}</b>`}</div>${canPay?`<div class="acts"><button type="button" class="btn pri" data-act="pay" data-id="${s.id}">${I.cash}${t('got')}</button>${canWa?`<button type="button" class="btn wa ico" data-act="wa" data-id="${s.id}" aria-label="WhatsApp ${esc(s.name)}" title="WhatsApp">${I.msg}</button>`:''}</div>`:''}</div>`}).join(''):`<div class="empty" style="padding:16px 8px">${t('nothing')}</div>`;
+  // money in & out on the picked day
+  const dFees=fees.filter(x=>x.p.d===calSel),dExp=cfg.mods.expenses?EXP.filter(e=>e.d===calSel):[];
+  const dIn=dFees.reduce((x,f)=>x+f.p.a,0)+dExp.filter(e=>e.type==='in').reduce((x,e)=>x+e.a,0),dOut=dExp.filter(e=>e.type==='out').reduce((x,e)=>x+e.a,0);
+  const moneyLines=dFees.map(({s,p})=>`<div class="line"><span>${t('feeFrom',esc(s.name))}</span><b class="inc">+ ${rs(p.a)}</b></div>`).join('')+dExp.map(e=>`<div class="line"><span>${esc(catName(e.cat))}</span><b class="${e.type==='in'?'inc':'outc'}">${e.type==='in'?'+':'−'} ${rs(e.a)}</b></div>`).join('');
+  const money=calSel>TODAY?'':`<div class="card" style="gap:6px"><h2>${t('calMoney')}</h2>${moneyLines?`<div class="msum"><span class="inc">+ ${rs(dIn)}</span><span class="outc">− ${rs(dOut)}</span></div>${moneyLines}`:`<div class="empty" style="padding:12px 8px">${t('calNoMoney')}</div>`}${cfg.mods.expenses?`<div><button type="button" class="btn sec" data-act="calmoney" data-v="${calSel}">${I.cash}${t('calOpenMoney')}</button></div>`:''}</div>`;
+  const stat=(cls,lab,val)=>`<div class="stat ${cls}"><span class="lab">${lab}</span><span class="n money">${val}</span></div>`;
+  app.innerHTML=`<div class="tri calsum">${stat(toGet?'c-soon':'c-ok',t('calToGet'),toGet?rs(toGet):t('none'))}${stat('c-ok',t('calGot'),rs(gotSum))}${stat(ends?'c-soon':'c-all',t('calFree'),num(ends))}</div>
+  <div class="calwrap"><div class="card">
    <div class="calhead"><h2>${MN[lang][calM-1]} ${num(calY)}</h2><span class="sub">${short(a1)}${short(a1)===short(a2)?'':' – '+short(a2)} ${a2.getUTCFullYear()}</span>
    <div class="calnav"><button type="button" class="btn sec" data-act="calmove" data-v="-1" aria-label="${t('prevM')}" ${calY===2082&&calM===1?'disabled':''}>${I.back}</button><button type="button" class="btn sec" data-act="caltoday">${t('today')}</button><button type="button" class="btn sec" data-act="calmove" data-v="1" aria-label="${t('nextM')}" ${calY===2084&&calM===12?'disabled':''}>${I.next}</button></div></div>
    <div class="wk">${T[lang].wk.map(w=>`<div>${w}</div>`).join('')}</div>
    <div class="days">${cells}</div>
-   <div class="legend"><span><i class="c-late"></i>${t('late')}</span><span><i class="c-soon"></i>${t('lDue')}</span><span><i class="c-ok"></i>${t('paid')}</span><span><i class="c-all"></i>${t('lEnd')}</span></div>
+   <div class="legend"><span><i class="c-late"></i>${t('late')}</span><span><i class="c-soon"></i>${t('lDue')}</span><span><i class="c-ok"></i>${t('paid')}</span><span><i class="c-all"></i>${t('lEnd')}</span><span><b class="damt">12k</b>${t('calAmtKey')}</span></div>
   </div>
-  <div class="card" style="gap:10px"><h2>${fmt(calSel)}</h2>${detail}</div></div>`;
+  <div class="calside"><div class="card" style="gap:10px"><h2>${fmt(calSel)}</h2>${detail}</div>${money}</div></div>`;
 }
 function bedList(){
   return BEDS.map(id=>{const s=S.find(x=>x.room===id);if(!s)return{id,k:'empty'};const e=endIdx(s);return{id,s,e,k:e-TODAY<=cfg.endSoon?'ending':'occ'}});
 }
 const freeBeds=()=>bedList().filter(b=>b.k==='empty').map(b=>b.id);
 function renderRooms(){
-  const all=bedList(),n=k=>all.filter(b=>b.k===k).length;
+  if(blockF!=='all'&&!BLK.some(b=>b.id===blockF))blockF='all';
+  const every=bedList(),bOf=b=>blockOf(b.id.split('-')[0]);
+  const all=blockF==='all'?every:every.filter(b=>bOf(b)===blockF),n=k=>all.filter(b=>b.k===k).length;
+  const blk=(k,lab,bs,B)=>`<button type="button" class="blk" data-act="blockf" data-v="${esc(k)}" aria-pressed="${blockF===k}"${B?` style="--bc:${B.col}"`:''}><span class="bhd">${B?`<i class="bbadge">${esc(bBadge(B))}</i>`:''}<b>${lab}</b></span><span class="sub">${t('fullOf',num(bs.filter(b=>b.k!=='empty').length),num(bs.length))}</span></button>`;
+  const blockBar=`<div class="blocks" role="group" aria-label="${t('block')}">${blk('all',t('allBlocks'),every)}${BLK.map(B=>blk(B.id,esc(bname(B)),every.filter(b=>bOf(b)===B.id),B)).join('')}</div>`;
+  const editBtn=`<button type="button" class="btn ${roomEdit?'pri':'edit'}" data-act="redit">${roomEdit?t('reDone'):I.edit+t('reEdit')}</button>`;
+  if(roomEdit){app.innerHTML=`${blockBar}<div class="reditbar"><p class="ehint">${t('reHint')}</p>${editBtn}</div>${roomEditor()}`;return}
   const stat=(k,cls,lab,val,sub)=>`<button type="button" class="stat ${cls}" data-act="roomf" data-v="${k}" aria-pressed="${roomF===k}"><span class="lab">${lab}</span><span class="n">${num(val)}</span><span class="s">${sub}</span></button>`;
   const vis=b=>roomF==='all'||(roomF==='occ'&&b.k!=='empty')||roomF===b.k;
   const rooms=[...new Set(all.map(b=>b.id.split('-')[0]))];
-  const floors=[...new Set(rooms.map(r=>r[0]))];
+  const floors=[...new Set(rooms.map(r=>blockOf(r)+'|'+r[0]))].sort();
   const bedHtml=b=>{
     const label=`${t('bed')} ${b.id.split('-')[1]}`;
     if(b.k==='empty')return`<button type="button" class="bed c-ok" data-act="book" data-v="${b.id}"><span><b>${label}</b><span class="sub">${t('emptyB')}</span></span><span class="go">${t('book')}</span></button>`;
     return`<button type="button" class="bed ${b.k==='ending'?'c-soon':'c-all'}" data-act="open" data-id="${b.s.id}"><span style="min-width:0;flex:1"><b>${esc(b.s.name)}</b><span class="sub">${b.k==='ending'?t('freeFrom',fmtS(b.e)):label+' · '+stayText(b.s)}</span>${stayMeter(b.s)}</span></button>`;
   };
   const body=floors.map(f=>{
-    const cards=rooms.filter(r=>r[0]===f).map(r=>{
+    const cards=rooms.filter(r=>blockOf(r)+'|'+r[0]===f).map(r=>{
       const bs=all.filter(b=>b.id.startsWith(r+'-')),shown=bs.filter(vis);
       if(!shown.length)return'';
       const used=bs.filter(b=>b.k!=='empty').length;
       return`<div class="room"><div class="rt"><h3>${t('room')} ${num(r)}</h3><span class="sub">${t('fullOf',num(used),num(bs.length))}</span></div>${shown.map(bedHtml).join('')}</div>`}).join('');
-    return cards?`<p class="floor">${t('floor',num(f))}</p><div class="roomgrid">${cards}</div>`:'';
+    const B=blkById(f.split('|')[0]),fl=f.split('|')[1];
+    return cards?`<p class="floor" style="--bc:${B.col}"><i class="bdot"></i>${esc(bname(B))}${/\d/.test(fl)?` · ${t('floor',num(fl))}`:''}</p><div class="roomgrid">${cards}</div>`:'';
   }).join('');
-  app.innerHTML=`<div class="cards">
+  const freeNow=all.filter(b=>b.k==='empty'),freeSoon=all.filter(b=>b.k==='ending').sort((a,b)=>a.e-b.e);
+  const freeBar=`<div class="freebar"><h3><b>${num(freeNow.length)}</b> ${t('mapFreeNow')}</h3>${freeNow.length?`<div class="freelist">${freeNow.map(b=>`<button type="button" class="fchip" data-act="book" data-v="${b.id}">${num(b.id)}</button>`).join('')}</div>`:`<span class="sub">${t('mapNoFree')}</span>`}${freeSoon.length?`<span class="sub">${t('mapSoon')}</span><div class="freelist">${freeSoon.map(b=>`<button type="button" class="fchip soon" data-act="open" data-id="${b.s.id}">${num(b.id)} · ${fmtS(b.e)}</button>`).join('')}</div>`:''}</div>`;
+  const sw=`<div class="rviewsw" role="group">${editBtn}<button type="button" data-act="rview" data-v="map" aria-pressed="${roomView==='map'}">${t('mapView')}</button><button type="button" data-act="rview" data-v="list" aria-pressed="${roomView==='list'}">${t('mapList')}</button></div>`;
+  const bx=b=>{const L=b.id.split('-')[1];
+    if(b.k==='empty')return`<button type="button" class="bx e" data-act="book" data-v="${b.id}" title="${t('book')} ${b.id}"><b>${L}</b><span>${t('emptyB')}</span></button>`;
+    return`<button type="button" class="bx ${b.k==='ending'?'s':''}" data-act="open" data-id="${b.s.id}" title="${esc(b.s.name)}"><b>${L}</b><span>${esc(b.s.name.split(' ')[0])}</span></button>`};
+  const map=BLK.filter(B=>blockF==='all'||blockF===B.id).map(B=>{const L=B.id;
+    const rs2=rooms.filter(r=>blockOf(r)===L).sort(roomSort);if(!rs2.length)return'';
+    const bAll=all.filter(b=>bOf(b)===L);
+    const tiles=rs2.map(r=>{const bs=all.filter(b=>b.id.startsWith(r+'-')).filter(vis);if(!bs.length)return'';const used=all.filter(b=>b.id.startsWith(r+'-')&&b.k!=='empty').length,tot=all.filter(b=>b.id.startsWith(r+'-')).length;
+      return`<div class="rtile ${used<tot?'hasfree':''}"><div class="rh"><b>${num(esc(r))}</b><span>${t('fullOf',num(used),num(tot))}</span></div><div class="rbeds">${bs.map(bx).join('')}</div></div>`}).join('');
+    return tiles?`<section class="bsec" style="--bc:${B.col}"><div class="bsh"><i class="bbadge">${esc(bBadge(B))}</i><b>${esc(bname(B))}</b><span class="sub">${t('fullOf',num(bAll.filter(b=>b.k!=='empty').length),num(bAll.length))}</span></div><div class="rmap">${tiles}</div></section>`:''}).join('');
+  const legend=`<div class="mlegend"><span><i style="background:var(--c-ok);border-color:var(--f-ok)"></i>${t('emptyB')}</span><span><i style="background:var(--tint)"></i>${t('occupied')}</span><span><i style="background:var(--c-soon);border-color:var(--f-soon)"></i>${t('ending')}</span></div>`;
+  app.innerHTML=`${blockBar}${freeBar}<div class="cards">
   ${stat('all','c-all',t('allBeds'),all.length,t('subBeds',num(rooms.length)))}
   ${stat('occ','c-all',t('occupied'),all.length-n('empty'),t('subOcc'))}
   ${stat('empty','c-ok',t('emptyB'),n('empty'),t('subEmpty'))}
   ${stat('ending','c-soon',t('ending'),n('ending'),t('subEnding',num(cfg.endSoon)))}
-  </div>${body}`;
+  </div>${sw}${!BEDS.length?`<div class="empty">${t('reNoRooms')}</div>`:roomView==='map'?legend+map:body}`;
 }
+// ---- Edit rooms mode (2026-11-20): add/rename/delete blocks, rooms, beds; edit or move the person in a bed ----
+const roomsOf=L=>[...new Set(BEDS.map(b=>b.split('-')[0]))].filter(r=>blockOf(r)===L).sort(roomSort);
+function roomEditor(){
+  const ic=(k,v,icon,lab,cls='')=>`<button type="button" class="btn sec ico ${cls}" data-act="re" data-k="${k}" data-v="${esc(v)}" aria-label="${lab}" title="${lab}">${icon}</button>`;
+  const secs=BLK.filter(B=>blockF==='all'||blockF===B.id).map(B=>{
+    const rs2=roomsOf(B.id),bedsIn=BEDS.filter(b=>rs2.includes(b.split('-')[0])),used=bedsIn.filter(b=>S.some(s=>s.room===b)).length;
+    const tiles=rs2.map(r=>{
+      const beds=BEDS.filter(b=>b.startsWith(r+'-'));
+      const rows=beds.map(id=>{const s=S.find(x=>x.room===id),L=id.split('-')[1];
+        return s?`<div class="ebed"><span class="bl">${L}</span><span class="nm" title="${esc(s.name)}">${esc(s.name)}</span><button type="button" class="btn sec" data-act="re" data-k="sname" data-id="${s.id}">${t('reName')}</button><button type="button" class="btn sec" data-act="re" data-k="smove" data-id="${s.id}">${t('reRemove')}</button></div>`
+          :`<div class="ebed e"><span class="bl">${L}</span><span class="nm">${t('emptyB')}</span><button type="button" class="btn sec" data-act="book" data-v="${esc(id)}">+ ${t('reAddP')}</button><button type="button" class="btn sec ico del" data-act="beddel" data-v="${esc(id)}" aria-label="${t('del')} ${t('bed')} ${L}" title="${t('del')} ${t('bed')} ${L}">×</button></div>`}).join('');
+      const move=BLK.length>1?`<label class="emove">${t('reInBlock')}<select data-rblock="${esc(r)}">${BLK.map(x=>`<option value="${esc(x.id)}" ${x.id===B.id?'selected':''}>${esc(bname(x))}</option>`).join('')}</select></label>`:'';
+      return`<div class="etile"><div class="eth"><b>${t('room')} ${num(esc(r))}</b><span class="eacts">${ic('rname',r,I.edit,t('reRenameRoom'))}${ic('rdel',r,I.trash,t('reDelRoom'),'del')}</span></div>${move}<div class="ebeds">${rows||`<span class="sub">${t('reNoBeds')}</span>`}</div><button type="button" class="btn sec" data-act="bedadd" data-v="${esc(r)}">+ ${t('stAddBed')}</button></div>`}).join('');
+    return`<section class="bsec" style="--bc:${B.col}"><div class="bsh"><i class="bbadge">${esc(bBadge(B))}</i><b>${esc(bname(B))}</b><span class="sub">${t('reRoomsN',num(rs2.length))} · ${t('fullOf',num(used),num(bedsIn.length))}</span><span class="eacts">${ic('bedit',B.id,I.edit,t('reEditBlock'))}${ic('bdel',B.id,I.trash,t('reDelBlock'),'del')}</span></div><div class="rmap emap">${tiles}<button type="button" class="eadd" data-act="re" data-k="rnew" data-v="${esc(B.id)}">+ ${t('stAddRoom')}</button></div></section>`}).join('');
+  return`${secs}<button type="button" class="bnew" data-act="re" data-k="bnew">+ ${t('reNewBlock')}</button>`;
+}
+function nextBlockId(){return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').find(c=>!BLK.some(b=>b.id===c))||('X'+Date.now())}
+function roomNameErr(r,old){
+  if(!r)return t('roomBad');
+  if(/[-<>"'&]/.test(r))return t('reBadChar');
+  if(r!==old&&BEDS.some(b=>b.split('-')[0]===r))return t('roomDup');
+  return '';
+}
+function renameRoom(a,b){
+  const fix=x=>x&&x.startsWith(a+'-')?b+x.slice(a.length):x;
+  BEDS=BEDS.map(fix).sort();S.forEach(s=>s.room=fix(s.room));PAST.forEach(s=>s.room=fix(s.room));
+  RB[b]=RB[a];delete RB[a];if(setRoom===a)setRoom=b;
+}
+const rdDlg=document.getElementById('rd');let rdState=null;
+function openRd(k,v,id){
+  rdState={k,v,id};
+  const fld=(lab,val,ph='')=>`<label class="fld">${lab}<input id="rd-in" value="${esc(val)}" placeholder="${esc(ph)}" autocomplete="off" maxlength="30"></label>`;
+  const colors=()=>`<div style="display:grid;gap:6px;font-weight:600">${t('reColor')}<div class="swatches">${BCOL.map(c=>`<button type="button" class="swc" style="--bc:${c}" data-act="rdcol" data-v="${c}" aria-pressed="${c===rdState.col}" aria-label="${t('reColor')} ${c}"></button>`).join('')}</div></div>`;
+  let h='',ok=t('save');
+  if(k==='bnew'){rdState.col=BCOL.find(c=>!BLK.some(b=>b.col===c))||BCOL[0];h=`<h2>${t('reNewBlock')}</h2>${fld(t('reBlockName'),'',`${t('block')} ${nextBlockId()}`)}${colors()}`}
+  if(k==='bedit'){const B=blkById(v);rdState.col=B.col;h=`<h2>${t('reEditBlock')}</h2>${fld(t('reBlockName'),bname(B))}${colors()}`}
+  if(k==='rnew'){h=`<h2>${t('stAddRoom')} · ${esc(bname(blkById(v)))}</h2>${fld(t('reRoomName'),'',t('reRoomPh'))}<label class="fld">${t('qBedsN')}<select id="rd-beds">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${n===2?'selected':''}>${num(n)}</option>`).join('')}</select></label>`}
+  if(k==='rname'){h=`<h2>${t('reRenameRoom')}</h2>${fld(t('reRoomName'),v)}`}
+  if(k==='sname'){const s=byId(id);h=`<h2>${t('reName')}</h2>${fld(t('fName'),s.name)}`}
+  if(k==='smove'){const s=byId(id),fb=freeBeds();
+    h=`<h2>${t('reRemoveT',esc(s.name))}</h2><p>${t('reNowIn',num(esc(s.room)))}</p>${fb.length?`<label class="fld">${t('reMoveTo')}<select id="rd-bed">${fb.map(b=>`<option value="${esc(b)}">${esc(bname(blkById(blockOf(b.split('-')[0]))))} · ${t('room')} ${num(esc(b))}</option>`).join('')}</select></label>`:`<p class="sub">${t('reNoFree')}</p>`}
+    <button type="button" class="btn sec big" data-act="re" data-k="sleft" data-id="${s.id}">${t('reLeft')}</button>`;
+    ok=fb.length?t('reMoveBtn'):''}
+  rdDlg.innerHTML=`<form class="dlg" id="rdf" novalidate>${h}<div class="err" id="rd-err" role="alert"></div><div class="row2">${ok?`<button type="submit" class="btn pri big">${ok}</button>`:''}<button type="button" class="btn sec big" data-act="rdx">${t('cancel')}</button></div></form>`;
+  rdDlg.showModal();const inp=document.getElementById('rd-in');if(inp){inp.focus();inp.select()}
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const{act,k,v}=b.dataset;
+  if(act==='redit'){roomEdit=!roomEdit;roomView='map';render();window.scrollTo(0,0)}
+  if(act==='rdx')rdDlg.close();
+  if(act==='rdcol'){rdState.col=v;rdDlg.querySelectorAll('.swc').forEach(c=>c.setAttribute('aria-pressed',c.dataset.v===v))}
+  if(act!=='re')return;
+  const id=b.dataset.id?+b.dataset.id:null;
+  if(k==='rdel'){
+    if(BEDS.some(x=>x.startsWith(v+'-')&&S.some(s=>s.room===x))){toast(t('reRoomBusy'));return}
+    const keepB=BEDS.slice(),keepR=RB[v];BEDS=BEDS.filter(x=>!x.startsWith(v+'-'));delete RB[v];render();
+    toast(t('reRoomGone',v),()=>{BEDS=keepB;if(keepR)RB[v]=keepR;render()});return}
+  if(k==='bdel'){
+    if(roomsOf(v).length){toast(t('reBlockBusy'));return}
+    if(BLK.length<2){toast(t('reLastBlock'));return}
+    const i=BLK.findIndex(x=>x.id===v),B=BLK[i];BLK.splice(i,1);if(blockF===v)blockF='all';render();
+    toast(t('reBlockGone',bname(B)),()=>{BLK.splice(i,0,B);render()});return}
+  if(k==='sleft'){rdDlg.close();openAsk('finish',byId(id));return}
+  openRd(k,v,id);
+});
+document.addEventListener('change',e=>{
+  const r=e.target.dataset&&e.target.dataset.rblock;if(r==null)return;
+  RB[r]=e.target.value;render();toast(t('savedS'));
+});
+document.addEventListener('submit',e=>{
+  if(e.target.id!=='rdf')return;e.preventDefault();
+  const st=rdState,err=document.getElementById('rd-err'),val=(document.getElementById('rd-in')?.value||'').trim().replace(/\s+/g,' ');
+  if(st.k==='bnew'||st.k==='bedit'){
+    if(/[<>"&]/.test(val)){err.textContent=t('reBadChar');return}
+    if(st.k==='bnew'){const nid=nextBlockId();BLK.push({id:nid,name:val,col:st.col})}
+    else{const B=blkById(st.v);B.name=val===`${t('block')} ${B.id}`?'':val;B.col=st.col}}
+  if(st.k==='rnew'){const m=roomNameErr(val);if(m){err.textContent=m;return}
+    RB[val]=st.v;const n=+document.getElementById('rd-beds').value;for(let i=0;i<n;i++)BEDS.push(val+'-'+'ABCDEFGH'[i]);BEDS.sort()}
+  if(st.k==='rname'&&val!==st.v){const m=roomNameErr(val,st.v);if(m){err.textContent=m;return}renameRoom(st.v,val)}
+  if(st.k==='sname'){if(!val){err.textContent=t('nameErr');return}const s=byId(st.id);s.name=val}
+  if(st.k==='smove'){const s=byId(st.id),to=document.getElementById('rd-bed').value,from=s.room;s.room=to;rdDlg.close();render();
+    toast(t('reMoved',s.name,to),()=>{s.room=from;render()});return}
+  rdDlg.close();render();toast(t('savedS'));
+});
 let backTo='list',peopleSort='due',pq='',askState=null;
-const TITLES={dues:'dueList',pays:'allPays',settings:'settings',expenses:'expenses',list:'dashboard',people:'students',past:'pastH',msgs:'messages',add:'add',cal:'calendar',rooms:'rooms'};
+const TITLES={ledger:'ledger',dues:'dueList',pays:'allPays',settings:'settings',expenses:'expenses',list:'dashboard',people:'students',past:'pastH',msgs:'messages',add:'add',cal:'calendar',rooms:'rooms'};
 const activeNav=()=>{const v=view==='one'?backTo:view;return v==='past'||v==='add'?'people':v==='dues'||v==='pays'?'list':v};
 function byId(id){return S.find(x=>x.id===id)||PAST.find(x=>x.id===id)}
 I.grid='<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>';
@@ -636,10 +1067,7 @@ function makePast(name,ph,room,fee,jy,jm,jd,ly,lm,ld,owe){
   const log=[{d:join,k:'lJoin'},...pays.slice().reverse().map(x=>({d:x.d,k:'lPaid',a:x.a,h:x.h})),{d:leftOn,k:'lLeft'}];
   return{id:nextId++,name,ph,gd:ph,room,fee,join,jd,months:ds.length,stayed:ds.length,left:owe,lateSince:owe?leftOn:null,nextDue:leftOn,pays,log,credit:0,sent:false,leftOn};
 }
-let PAST=[
-makePast('Manisha Sapkota','9800000011','103-A',14000,2083,1,18,2083,6,25,0),
-makePast('Aarav Bhandari','9800000012','207-A',10500,2082,10,4,2083,5,20,6000),
-makePast('Sunita Lama','9800000013','102-B',12000,2082,6,10,2083,3,12,0)];
+let PAST=[];
 const dueKey=s=>s.left?s.lateSince:s.nextDue;
 function renderPeopleRows(){
   const f=pq.trim().toLowerCase();
@@ -649,13 +1077,11 @@ function renderPeopleRows(){
     const st=status(s),ml=mLeft(s);
     return`<div class="row p">
     <button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face ${st}">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))}</span></span></button>
-    <div class="cell" data-l="${t('joined')}">${fmt(s.join)}</div>
     <div class="cell" data-l="${t('cNext')}">${dueCell(s)}</div>
     <div class="cell" data-l="${t('cLeft')}">${s.left?`<span class="left ${st==='late'?'is-late':''}">${rs(s.left)}</span>`:`<span class="sub">${t('none')}</span>`}</div>
-    <div class="cell" data-l="${t('cStay')}"><span class="${isEnding(s)?'tag soon':''}">${stayText(s)}</span>${stayMeter(s)}</div>
-    <div class="acts"><button type="button" class="btn sec" data-act="finish" data-id="${s.id}">${I.flag}${t('finish')}</button></div>
+    <div class="cell" data-l="${t('cStay')}"><span class="${isEnding(s)?'tag soon':''}">${stayText(s)}</span></div>
     </div>`}).join('');
-  document.getElementById('prows').innerHTML=`<div class="row p head"><div>${t('cStudent')}</div><div>${t('joined')}</div><div>${t('cNext')}</div><div>${t('cLeft')}</div><div>${t('cStay')}</div><div></div></div>`+(body||`<div class="empty">${t('noMatch')}</div>`);
+  document.getElementById('prows').innerHTML=`<div class="row p head"><div>${t('cStudent')}</div><div>${t('cNext')}</div><div>${t('cLeft')}</div><div>${t('cStay')}</div></div>`+(body||`<div class="empty">${t('noMatch')}</div>`);
 }
 function renderPeople(){
   app.innerHTML=`<div class="bar"><input class="search" id="psearch" type="search" aria-label="${t('search')}" placeholder="${t('search')}" value="${esc(pq)}">
@@ -667,16 +1093,15 @@ function renderPeople(){
 }
 function renderPast(){
   const list=PAST.slice().sort((a,b)=>b.leftOn-a.leftOn);
-  const body=list.map(s=>`<div class="row p">
+  const body=list.map(s=>`<div class="row p pp">
     <button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))}</span></span></button>
     <div class="cell" data-l="${t('joined')}">${fmt(s.join)}</div>
     <div class="cell" data-l="${t('leftOn')}">${fmt(s.leftOn)}</div>
     <div class="cell" data-l="${t('cLeft')}">${s.left?`<span class="left is-late">${rs(s.left)}</span>`:`<span class="sub">${t('none')}</span>`}</div>
     <div class="cell" data-l="${t('stayedH')}">${t('stayed',s.stayed).replace(/\d+/g,num)}</div>
-    <div></div>
     </div>`).join('');
   app.innerHTML=`<div><button type="button" class="btn sec" style="background:var(--panel)" data-act="go" data-v="people">${I.back}${t('back')}</button></div>
-  <div class="book"><div class="row p head"><div>${t('cStudent')}</div><div>${t('joined')}</div><div>${t('leftOn')}</div><div>${t('cLeft')}</div><div>${t('stayedH')}</div><div></div></div>${body||`<div class="empty">${t('noPast')}</div>`}</div>`;
+  <div class="book"><div class="row p pp head"><div>${t('cStudent')}</div><div>${t('joined')}</div><div>${t('leftOn')}</div><div>${t('cLeft')}</div><div>${t('stayedH')}</div></div>${body||`<div class="empty">${t('noPast')}</div>`}</div>`;
 }
 const askDlg=document.getElementById('ask');
 function openAsk(type,s){
@@ -725,21 +1150,88 @@ function openReceipt(s,i){
    <div><span>${t('rcHow')}</span><b>${t(p.h)}</b></div>
    <div><span>${t('rcAmt')}</span><b class="big2">${rs(p.a)}</b></div>
    <div><span>${t('rcLeft')}</span><b>${rs(s.left)}</b></div></div>
-   <div class="row2">${cfg.mods.msgs?`<a class="btn wa big" href="${waLink(rcText(s,i))}" target="_blank" rel="noopener" data-act="rcsend">${I.msg}${t('rcSend')}</a>`:''}<button type="button" class="btn sec big" data-act="askno" autofocus>${t('close')}</button></div></div>`;
+   <div class="row2">${cfg.mods.msgs?`<a class="btn wa big" href="${waLink(rcText(s,i),s.ph)}" target="_blank" rel="noopener" data-act="rcsend">${I.msg}${t('rcSend')}</a>`:''}<button type="button" class="btn sec big" data-act="askno" autofocus>${t('close')}</button></div></div>`;
   askDlg.showModal();
 }
-function renderExpenses(){
-  const[y,m]=fromIdx(TODAY),same=d=>{const[a,b]=fromIdx(d);return a===y&&b===m};
-  const inn=[...S,...PAST].flatMap(s=>s.pays).filter(p=>same(p.d)).reduce((x,p)=>x+p.a,0);
-  const out=EXP.filter(e=>same(e.d)).reduce((x,e)=>x+e.a,0);
-  const rows=EXP.slice().sort((a,b)=>b.d-a.d).map(e=>`<div class="line"><span><b>${rs(e.a)}</b> &nbsp;${esc(e.what)}</span><span>${fmt(e.d)}</span></div>`).join('');
-  app.innerHTML=`<div class="tri"><div class="stat c-ok"><span class="lab">${t('collected')}</span><span class="n">${rs(inn)}</span></div><div class="stat c-late"><span class="lab">${t('spent')}</span><span class="n">${rs(out)}</span></div><div class="stat c-all"><span class="lab">${t('remain')}</span><span class="n">${rs(inn-out)}</span></div></div>
-  <div class="two"><div class="card"><div class="quick">${T[lang].expChips.map(c=>`<button type="button" class="chip" data-act="expq" data-v="${esc(c)}">${esc(c)}</button>`).join('')}</div>
-   <label class="fld">${t('expWhat')}<input id="e-what" autocomplete="off"></label><label class="fld">${t('expAmt')}<input id="e-amt" inputmode="numeric"></label><div class="err" id="e-err" role="alert"></div><button type="button" class="btn pri big" data-act="expadd">${t('expAdd')}</button></div>
-  <div class="card" style="gap:0">${rows}</div></div>`;
+let mType='out',mCat='groc',mDay=TODAY,calc='',mAmt='',calcOpen=false,mForm=false,mTab='days',mOpen=TODAY,monY=fromIdx(TODAY)[0],monM=fromIdx(TODAY)[1];
+const OPS='+−×÷';
+function calcVal(x){
+  const tk=x.match(/\d+(?:\.\d+)?|[+−×÷]/g)||[];let total=0,term=null,sign=1,mul=null;
+  for(const k of tk){if(!OPS.includes(k)){const n=+k;term=term===null?n:mul==='÷'?(n?term/n:term):term*n;mul=null}
+    else if(k==='×'||k==='÷'){mul=k}else{if(term!==null)total+=sign*term;sign=k==='+'?1:-1;term=null;mul=null}}
+  if(term!==null)total+=sign*term;return Math.round(total*100)/100;
 }
-let setOpen='fees',msgKey='soon',setRoom=null;
+function calcKey(k){
+  const last=calc.slice(-1);
+  if(k==='C')calc='';else if(k==='back')calc=calc.slice(0,-1);
+  else if(OPS.includes(k)){if(!calc)return;calc=OPS.includes(last)?calc.slice(0,-1)+k:calc+k}
+  else if(k==='='){if(calc){const v=calcVal(calc);calc=v>0?String(v):''}}
+  else if(calc.length<40){if(k==='.'){const seg=calc.split(/[+−×÷]/).pop();if(seg.includes('.'))return;if(!seg)k='0.'}calc+=k}
+  drawScreen();
+}
+function drawScreen(){
+  const sv=document.getElementById('m-save');if(!sv)return;
+  sv.textContent=+mAmt>0?t('mSave',rs(Math.round(+mAmt))):t('mSave0');
+  const ex=document.getElementById('m-ex'),res=document.getElementById('m-res');if(!ex)return;
+  const hasOp=/[+−×÷]/.test(calc.slice(0,-1)+'');
+  ex.textContent=hasOp?num(calc):'';
+  res.textContent=rs(calcVal(calc));
+}
+const catName=c=>t('cat_'+c);
+function renderExpenses(){
+  const mStart=toIdx(monY,monM,1),mLen=ML[monY][monM-1],inMon=d=>d>=mStart&&d<mStart+mLen;
+  const ents=EXP.filter(e=>inMon(e.d)),fees=allPays().filter(x=>inMon(x.p.d));
+  const feeIn=fees.reduce((a,x)=>a+x.p.a,0),otherIn=ents.filter(e=>e.type==='in').reduce((a,e)=>a+e.a,0);
+  const out=ents.filter(e=>e.type==='out').reduce((a,e)=>a+e.a,0),inn=feeIn+otherIn,left=inn-out;
+  const lastDay=Math.min(mStart+mLen-1,TODAY);
+  const atNow=monY===fromIdx(TODAY)[0]&&monM===fromIdx(TODAY)[1];
+  // one list, grouped by day, always open (like a bank statement)
+  const days=[];for(let d=lastDay;d>=mStart;d--){const es=ents.filter(e=>e.d===d),fs=fees.filter(x=>x.p.d===d);if(es.length||fs.length)days.push({d,es,fs})}
+  const dayHtml=days.map(({d,es,fs})=>{
+    const o=es.filter(e=>e.type==='out').reduce((a,e)=>a+e.a,0),i=es.filter(e=>e.type==='in').reduce((a,e)=>a+e.a,0)+fs.reduce((a,x)=>a+x.p.a,0);
+    return`<div class="xday" id="mday-${d}"><div class="xdh"><b>${relDate(d)}</b><span>${i?`<span class="inc">+ ${rs(i)}</span>`:''}${o?`<span class="outc">− ${rs(o)}</span>`:''}</span></div>`+
+    es.map(e=>`<div class="xrow"><span class="xcat">${esc(catName(e.cat))}${e.note?`<span class="sub">${esc(e.note)}</span>`:''}</span><b class="${e.type==='in'?'inc':'outc'}">${e.type==='in'?'+':'−'} ${rs(e.a)}</b><button type="button" class="xdel" data-act="mdel" data-v="${e.id}" aria-label="${t('del')} ${esc(catName(e.cat))} ${rs(e.a)}">×</button></div>`).join('')+
+    fs.map(({s,p})=>`<div class="xrow"><span class="xcat">${t('feeFrom',esc(s.name))}</span><b class="inc">+ ${rs(p.a)}</b><span class="xdel"></span></div>`).join('')+`</div>`}).join('');
+  // by category
+  const cats=CATS.out.map(c=>[c,ents.filter(e=>e.cat===c).reduce((a,e)=>a+e.a,0)]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);
+  const ins=[['__fees',feeIn],...CATS.in.map(c=>[c,ents.filter(e=>e.cat===c).reduce((a,e)=>a+e.a,0)])].filter(x=>x[1]);
+  const catRow=(c,a,tot,cls)=>`<div class="xrow"><span class="xcat">${c==='__fees'?t('feesAuto'):esc(catName(c))}<span class="sub">${num(Math.round(a/Math.max(tot,1)*100))}%</span></span><b class="${cls}">${rs(a)}</b><span class="xdel"></span></div>`;
+  const catHtml=`<div class="xday"><div class="xdh"><b>${t('mOut')}</b><span class="outc">− ${rs(out)}</span></div>${cats.map(([c,a])=>catRow(c,a,out,'outc')).join('')||`<div class="empty">${t('mNone')}</div>`}</div>
+   <div class="xday"><div class="xdh"><b>${t('mIn')}</b><span class="inc">+ ${rs(inn)}</span></div>${ins.map(([c,a])=>catRow(c,a,inn,'inc')).join('')||`<div class="empty">${t('mNone')}</div>`}</div>`;
+  // entry form: only shown after tapping Money out / Money in
+  const dayChips=[0,1,2].map(n=>`<button type="button" class="chip" data-act="mdate" data-v="${TODAY-n}" aria-pressed="${mDay===TODAY-n}">${relDate(TODAY-n)}</button>`).join('');
+  const K=(k,lab,cls='')=>`<button type="button" class="${cls}" data-act="key" data-v="${k}" aria-label="${lab}">${lab}</button>`;
+  const form=!mForm?'':`<div class="card xform ${mType}" style="gap:10px"><h2>${mType==='out'?t('mOutBtn'):t('mInBtn')}</h2>
+   <label class="mlab" for="m-amt">${t('mHow')}</label>
+   <div class="amtrow"><input id="m-amt" class="amt" inputmode="numeric" autocomplete="off" placeholder="0" value="${esc(mAmt)}"><button type="button" class="calcbtn" data-act="calc" aria-pressed="${calcOpen}" aria-label="${t('mCalc')}" title="${t('mCalc')}">${I.calc}</button></div>
+   ${calcOpen?`<div class="calcbox"><div class="screen" aria-live="polite"><span class="ex" id="m-ex"></span><span class="res" id="m-res"></span></div>
+   <div class="keys">${K('7',num(7))}${K('8',num(8))}${K('9',num(9))}${K('÷','÷','op')}${K('4',num(4))}${K('5',num(5))}${K('6',num(6))}${K('×','×','op')}${K('1',num(1))}${K('2',num(2))}${K('3',num(3))}${K('−','−','op')}${K('0',num(0))}${K('.','.')}${K('back','⌫')}${K('+','+','op')}${K('C','C','clr')}${K('00',num('00'))}<button type="button" class="op" style="grid-column:span 2" data-act="key" data-v="=" aria-label="=">=</button></div>
+   <button type="button" class="btn sec" data-act="calcuse">${t('mUse')}</button></div>`:''}
+   <span class="mlab">${t('mWhat')}</span><div class="quick">${CATS[mType].map(c=>`<button type="button" class="chip" data-act="mcat" data-v="${c}" aria-pressed="${mCat===c}">${esc(catName(c))}</button>`).join('')}</div>
+   <span class="mlab">${t('mWhen')}</span><div class="quick">${dayChips}</div>
+   <label class="fld">${t('mNote')}<input id="m-note" autocomplete="off" placeholder="${t('mNotePh')}"></label>
+   <div class="err" id="m-err" role="alert"></div>
+   <div class="row2"><button type="button" class="btn pri big" id="m-save" data-act="msave"></button><button type="button" class="btn sec big" data-act="mclose">${t('cancel')}</button></div></div>`;
+  app.innerHTML=`<div class="xwrap"><div class="monbar"><button type="button" class="btn sec" style="background:var(--panel)" data-act="mmon" data-v="-1" aria-label="${t('prevM')}">${I.back}</button><b>${MN[lang][monM-1]} ${num(monY)}</b><button type="button" class="btn sec" style="background:var(--panel)" data-act="mmon" data-v="1" aria-label="${t('nextM')}" ${atNow?'disabled':''}>${I.next}</button></div>
+  <div class="card xsum"><div><span class="lab">${t('mIn')}</span><b class="inc">${rs(inn)}</b></div><div><span class="lab">${t('mOut')}</span><b class="outc">${rs(out)}</b></div><div><span class="lab">${t('remain')}</span><b class="${left<0?'outc':''}">${left<0?'− ':''}${rs(Math.abs(left))}</b></div></div>
+  ${mForm?form:`<div class="xbtns"><button type="button" class="btn big xout" data-act="mnew" data-v="out">${t('mOutBtn')}</button><button type="button" class="btn big xin" data-act="mnew" data-v="in">${t('mInBtn')}</button></div>`}
+  <div class="card" style="gap:0"><div class="seg xtabs" role="tablist"><button type="button" role="tab" data-act="mtab" data-v="days" aria-pressed="${mTab==='days'}" aria-selected="${mTab==='days'}">${t('mDays')}</button><button type="button" role="tab" data-act="mtab" data-v="cats" aria-pressed="${mTab==='cats'}" aria-selected="${mTab==='cats'}">${t('mByCat')}</button></div>
+  ${mTab==='days'?(dayHtml||`<div class="empty">${t('mNone')}</div>`):catHtml}</div></div>`;
+  if(!mForm)return;
+  const amt=document.getElementById('m-amt');
+  amt.addEventListener('input',()=>{const c=amt.value.replace(/[^0-9]/g,'');if(c!==amt.value)amt.value=c;mAmt=c;document.getElementById('m-err').textContent='';drawScreen()});
+  [amt,document.getElementById('m-note')].forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('m-save').click()}}));
+  drawScreen();
+}
+document.addEventListener('keydown',e=>{
+  if(view!=='expenses'||!calcOpen||e.ctrlKey||e.metaKey||e.altKey||document.querySelector('dialog[open]'))return;
+  const tg=e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT')return;
+  const map={'*':'×','x':'×','/':'÷','-':'−','+':'+','Backspace':'back','Escape':'C','=':'=','.':'.'};
+  if(/^\d$/.test(e.key))calcKey(e.key);else if(e.key==='Enter'){e.preventDefault();document.querySelector('[data-act="calcuse"]').click()}else if(map[e.key]){e.preventDefault();calcKey(map[e.key])}
+});
+let addBlk=null,addPaid=false,addHow='cash',setOpen='fees',msgKey='soon',setRoom=null;
 const DEF_TPL=JSON.parse(JSON.stringify(cfg.tpl));
+I.calc='<svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01M8.5 15h.01M12 15h.01M15.5 15h.01M8.5 18h.01M12 18h.01M15.5 18h.01"/></svg>';
 I.home='<svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7M6 9.5V20h12V9.5M10 20v-6h4v6"/></svg>';
 I.bell='<svg viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15zM10 21h4"/></svg>';
 I.form='<svg viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 8.5h6M9 12.5h6M9 16.5h3"/></svg>';
@@ -763,7 +1255,7 @@ function renderSettings(){
   const formN=Object.values(cfg.fields).filter(Boolean).length+cfg.custom.length;
   let roomBody;
   if(setRoom==='__new'){
-    roomBody=row(t('qRoomNo'),`<input id="s-room" inputmode="numeric" autocomplete="off">`)+row(t('qBedsN'),`<select id="s-beds" aria-label="${t('qBedsN')}">${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${n===2?'selected':''}>${num(n)}</option>`).join('')}</select>`)+`<div class="err" id="s-err" role="alert"></div><div style="padding-top:6px"><button type="button" class="btn pri big" data-act="roomadd">${t('stAddRoom')}</button></div>`;
+    roomBody=row(t('block'),`<select id="s-block" aria-label="${t('block')}">${BLK.map(B=>`<option value="${esc(B.id)}" ${B.id===(blockF==='all'?BLK[0]?.id:blockF)?'selected':''}>${esc(bname(B))}</option>`).join('')}</select>`)+row(t('qRoomNo'),`<input id="s-room" autocomplete="off" maxlength="30">`)+row(t('qBedsN'),`<select id="s-beds" aria-label="${t('qBedsN')}">${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${n===2?'selected':''}>${num(n)}</option>`).join('')}</select>`)+`<div class="err" id="s-err" role="alert"></div><div style="padding-top:6px"><button type="button" class="btn pri big" data-act="roomadd">${t('stAddRoom')}</button></div>`;
   }else{
     const beds=BEDS.filter(b=>b.startsWith(setRoom+'-')),used=beds.filter(b=>S.some(s=>s.room===b)).length;
     roomBody=`<div class="bedbox">${beds.map(b=>{const st=S.find(s=>s.room===b);return`<span class="bchip ${st?'c-all':'c-ok'}">${t('bed')} ${b.split('-')[1]}${st?` · ${esc(st.name.split(' ')[0])}`:` · ${t('emptyB')}<button type="button" data-act="beddel" data-v="${b}" aria-label="${t('del')} ${b}">×</button>`}</span>`}).join('')}<button type="button" class="btn sec" data-act="bedadd" data-v="${setRoom}">+ ${t('stAddBed')}</button></div><span class="sub">${t('fullOf',num(used),num(beds.length))}</span>`;
@@ -794,7 +1286,7 @@ function renderSettings(){
      (cfg.custom.length?`<div class="bedbox">${cfg.custom.map((c,i)=>`<span class="bchip c-all">${esc(c)}<button type="button" data-act="cfdel" data-v="${i}" aria-label="${t('del')} ${esc(c)}">×</button></span>`).join('')}</div>`:'')+
      `<div class="setrow"><div><div class="sq">${t('stOwn')}</div></div><div class="addline" style="flex-wrap:nowrap"><input id="s-own" placeholder="${t('stOwnPh')}" autocomplete="off"><button type="button" class="btn sec" data-act="cfadd">${t('stAddBtn')}</button></div></div>`],
    ['rooms',I.bed,'c-all',t('secRooms'),dg(t('sumRooms',rooms.length,BEDS.length)),
-     row(t('qRoom'),sel('room',setRoom,[...rooms.map(r=>[r,`${t('room')} ${num(r)}`]),['__new',t('newRoomOpt')]]))+roomBody]
+     row(t('qRoom'),sel('room',setRoom,[...rooms.map(r=>[r,`${esc(bname(blkById(blockOf(r))))} · ${t('room')} ${num(esc(r))}`]),['__new',t('newRoomOpt')]]))+roomBody]
   ];
   app.innerHTML=`<p class="hint">${t('stAuto')}</p><div class="setlist">${secs.map(([id,ic,c,title,sum,body])=>{const open=setOpen===id;return`<section class="setsec ${open?'open':''}"><button type="button" class="sechead" data-act="setopen" data-v="${id}" aria-expanded="${open}"><span class="secico ${c}">${ic}</span><span class="t"><b>${title}</b><span class="sub">${esc(sum)}</span></span><span class="chev">${I.down}</span></button>${open?`<div class="secbody">${body}</div>`:''}</section>`}).join('')}</div>`;
 }
@@ -823,37 +1315,26 @@ function chartHtml(){
   <table class="sr"><caption>${t('chartT')}</caption>${months.map(o=>`<tr><th>${MN[lang][o.m-1]}</th><td>${rs(o.sum)}</td></tr>`).join('')}</table>`;
 }
 function renderHome(){
-  const{y,m,collected,still,total}=monthTotals(),pct=total?Math.round(collected/total*100):0,md=cfg.mods;
-  const beds=bedList(),free=beds.filter(b=>b.k==='empty').length,joined=S.filter(s=>sameMonth(s.join,y,m)).length;
-  const late=S.filter(s=>status(s)==='late').length,today=S.filter(s=>status(s)==='today').length;
+  const{y,m,collected}=monthTotals(),md=cfg.mods;
+  const pick=k=>S.filter(s=>{const st=status(s);return k==='soon'?st==='soon'||st==='today':st===k});
+  const owed=l=>l.reduce((x,s)=>x+(s.left||Math.max(s.fee-s.credit,0)),0);
+  const lateL=pick('late'),soonL=pick('soon'),today=S.filter(s=>status(s)==='today').length;
   const pend=queue().filter(s=>!s.sent).length;
-  const todayIn=allPays().filter(x=>x.p.d===TODAY).reduce((a,x)=>a+x.p.a,0);
   const due=queue().sort((a,b)=>ORDER[status(a)]-ORDER[status(b)]||dueKey(a)-dueKey(b));
-  const dueRows=due.slice(0,6).map(s=>{const st=status(s);return`<div class="drow">
-    <button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face ${st}">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${s.left?t('subLeft',rs(s.left)):t('subSoon',rs(Math.max(s.fee-s.credit,0)))}</span></span></button>
-    <div class="cell">${dueCell(s)}</div>
-    <div class="acts"><button type="button" class="btn pri" data-act="pay" data-id="${s.id}">${I.cash}${t('got')}</button><button type="button" class="btn wa" data-act="wa" data-id="${s.id}" aria-label="WhatsApp ${esc(s.name)}" ${md.msgs?'':'disabled'}>${I.msg}</button></div></div>`}).join('');
-  const latest=allPays().slice(0,5).map(({s,p})=>`<div class="prow"><button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face paid">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${relDate(p.d)} · ${t(p.h)}</span></span></button><b>${rs(p.a)}</b></div>`).join('');
-  const ending=S.filter(isEnding).sort((a,b)=>endIdx(a)-endIdx(b)).slice(0,4).map(s=>`<div class="prow"><button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face soon">${esc(initials(s.name))}</span><span style="min-width:0;flex:1"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))} · ${stayText(s)}</span>${stayMeter(s)}</span></button></div>`).join('');
-  const spent=EXP.filter(e=>sameMonth(e.d,y,m)).reduce((a,e)=>a+e.a,0);
-  app.innerHTML=`<div class="todo"><p>${t('todaySum',late,today).replace(/\d+/g,num)}</p>
-   <button type="button" class="btn pri" style="flex:none" data-act="go" data-v="add">${I.plus}${t('add')}</button>
-   ${md.msgs?`<button type="button" class="btn wa" data-act="go" data-v="msgs">${I.msg}${t('sendRem')} (${num(pend)})</button>`:''}</div>
-  <div class="cards">
-   <button type="button" class="stat c-all" data-act="go" data-v="people"><span class="lab">${t('students')}</span><span class="n">${num(S.length)}</span><span class="s">${md.rooms?t('subFree',free).replace(/\d+/g,num)+' · ':''}${t('newThis',joined).replace(/\d+/g,num)}</span>${md.rooms?meter((beds.length-free)/Math.max(beds.length,1)*100,'stay',t('occupied')):''}</button>
-   <button type="button" class="stat c-soon" data-act="go" data-v="dues"><span class="lab">${t('hToCollect')}</span><span class="n money">${rs(total)}</span><span class="s">${MN[lang][m-1]} ${num(y)}</span></button>
-   <button type="button" class="stat c-ok" data-act="go" data-v="pays"><span class="lab">${t('hCollected')}</span><span class="n money">${rs(collected)}</span><span class="s">${t('pctDone',pct).replace(/\d+/g,num)} · ${t('subToday',rs(todayIn))}</span>${meter(pct,'ok',t('pctDone',pct))}</button>
-   <button type="button" class="stat c-late" data-act="go" data-v="dues"><span class="lab">${t('hStill')}</span><span class="n money">${rs(still)}</span><span class="s">${t('inclOld')}</span></button>
+  const dueRows=due.slice(0,8).map(s=>{const st=status(s),amt=s.left||Math.max(s.fee-s.credit,0);return`<div class="drow">
+    <button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face ${st}">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))}</span></span></button>
+    <div class="cell"><span class="left ${st==='late'?'is-late':''}">${rs(amt)}</span>${dueTag(s)}</div>
+    <div class="acts"><button type="button" class="btn pri" data-act="pay" data-id="${s.id}">${t('gotS')}</button>${md.msgs?`<button type="button" class="btn wa ico" data-act="wa" data-id="${s.id}" aria-label="WhatsApp ${esc(s.name)}" title="WhatsApp">${I.msg}</button>`:''}</div></div>`}).join('');
+  const card=(act,v,cls,lab,n,sub)=>`<button type="button" class="stat ${cls}" data-act="${act}" data-v="${v}"><span class="lab">${lab}</span><span class="n">${n}</span><span class="s">${sub}</span></button>`;
+  app.innerHTML=`<div class="todo"><p>${t('todaySum',lateL.length,today).replace(/\d+/g,num)}</p>
+   <button type="button" class="btn pri" data-act="go" data-v="add">${I.plus}${t('add')}</button>
+   ${md.msgs&&pend?`<button type="button" class="btn wa" data-act="go" data-v="msgs">${I.msg}${t('sendRem')} (${num(pend)})</button>`:''}</div>
+  <div class="cards c3">
+   ${card('dues','late','c-late',t('late'),num(lateL.length),t('subLeft',rs(owed(lateL))))}
+   ${card('dues','soon','c-soon',t('soon'),num(soonL.length),t('subSoon',rs(owed(soonL))))}
+   ${card('go','pays','c-ok',t('hCollected'),`<span class="money">${rs(collected)}</span>`,`${MN[lang][m-1]} ${num(y)}`)}
   </div>
-  <div class="home"><div class="col">
-   <div class="card" style="gap:6px"><div class="ch"><h2>${t('whoPay')}</h2><button type="button" class="seeall" data-act="go" data-v="dues">${t('seeAll')}${due.length?` (${num(due.length)})`:''}</button></div>${dueRows||`<div class="empty">${t('allPaid')}</div>`}</div>
-   <div class="card" style="gap:2px"><h2>${t('chartT')}</h2><span class="sub">${t('chartS')}</span>${chartHtml()}</div>
-  </div>
-  <div class="col">
-   <div class="card" style="gap:6px"><div class="ch"><h2>${t('latest')}</h2><button type="button" class="seeall" data-act="go" data-v="pays">${t('seeAll')}</button></div>${latest||`<div class="empty">${t('noPay')}</div>`}</div>
-   ${md.rooms?`<div class="card" style="gap:6px"><div class="ch"><h2>${t('leaving')}</h2><button type="button" class="seeall" data-act="go" data-v="rooms">${t('seeAll')}</button></div>${ending||`<div class="empty" style="padding:16px 8px">${t('nobodyLeaving')}</div>`}</div>`:''}
-   ${md.expenses?`<div class="card" style="gap:0"><div class="ch" style="margin-bottom:6px"><h2>${t('expenses')}</h2><button type="button" class="seeall" data-act="go" data-v="expenses">${t('seeAll')}</button></div><div class="line"><span>${t('collected')}</span><span>${rs(collected)}</span></div><div class="line"><span>${t('spent')}</span><span>${rs(spent)}</span></div><div class="line"><span><b>${t('remain')}</b></span><span><b>${rs(collected-spent)}</b></span></div></div>`:''}
-  </div></div>`;
+  <div class="card" style="gap:6px"><div class="ch"><h2>${t('whoPay')}</h2>${due.length>8?`<button type="button" class="seeall" data-act="dues" data-v="topay">${t('seeAll')} (${num(due.length)})</button>`:''}</div>${dueRows||`<div class="empty">${t('allPaid')}</div>`}</div>`;
 }
 function renderPays(){
   const[y,m]=fromIdx(TODAY);
@@ -866,12 +1347,48 @@ function renderPays(){
    <div class="cell" data-l="${t('rcDate')}">${fmt(p.d)}</div>
    <div class="acts"><button type="button" class="mini" data-act="receipt" data-id="${s.id}" data-v="${i}">${t('receipt')}</button></div></div>`).join('');
   app.innerHTML=`<div><button type="button" class="btn sec" style="background:var(--panel)" data-act="go" data-v="list">${I.back}${t('back')}</button></div>
+  <div class="card" style="gap:2px"><h2>${t('chartT')}</h2><span class="sub">${t('chartS')}</span>${chartHtml()}</div>
   <div class="sortrow"><button type="button" class="chip" data-act="prange" data-v="month" aria-pressed="${payRange==='month'}">${t('rMonth')}</button><button type="button" class="chip" data-act="prange" data-v="all" aria-pressed="${payRange==='all'}">${t('rAll')}</button><span style="margin-left:auto;font-weight:600">${t('total')}: ${rs(sum)}</span></div>
   <div class="book"><div class="row pay head"><div>${t('cStudent')}</div><div>${t('rcAmt')}</div><div>${t('rcHow')}</div><div>${t('rcDate')}</div><div></div></div>${rows||`<div class="empty">${t('noPay')}</div>`}</div>`;
 }
-const DEMO_PHONE='9779861828821';
-const waLink=text=>`https://wa.me/${DEMO_PHONE}?text=${encodeURIComponent(text)}`;
+// Opens WhatsApp to the student's own number (10-digit Nepali numbers get the 977 country code).
+const waLink=(text,ph)=>{const d=String(ph||'').replace(/\D/g,''),to=d.length===10?'977'+d:d;return`https://wa.me/${to}?text=${encodeURIComponent(text)}`};
 function rcText(s,i){const p=s.pays[i];return[cfg.name,`${t('rcNo')} R-${num(s.id*100+s.pays.length-i)}`,`${t('cStudent')}: ${s.name}`,`${t('rcDate')}: ${fmt(p.d)}`,`${t('rcAmt')}: ${rs(p.a)} (${t(p.h)})`,`${t('rcLeft')}: ${rs(s.left)}`].join('\n')}
+// Ledger: one list of who joined, who paid and who left, month by month (newest first)
+I.book='<svg viewBox="0 0 24 24"><path d="M5 4.5h11.5a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2zM5 18a2 2 0 0 1 2-2h11.5M9 8.5h6M9 12h4"/></svg>';
+let lgY=fromIdx(TODAY)[0],lgM=fromIdx(TODAY)[1],lgTab='all';
+function ledgerEvents(){
+  const ev=[];
+  [...S,...PAST].forEach(s=>{
+    ev.push({d:s.join,k:'join',s,o:0});
+    s.pays.forEach(p=>ev.push({d:p.d,k:'pay',s,p,o:1}));
+    if(s.leftOn!=null)ev.push({d:s.leftOn,k:'left',s,o:2});
+  });
+  return ev.sort((a,b)=>b.d-a.d||b.o-a.o);
+}
+function renderLedger(){
+  const mStart=toIdx(lgY,lgM,1),mLen=ML[lgY][lgM-1],inMon=d=>d>=mStart&&d<mStart+mLen;
+  const atNow=lgY===fromIdx(TODAY)[0]&&lgM===fromIdx(TODAY)[1];
+  const all=ledgerEvents().filter(e=>inMon(e.d));
+  const pays=all.filter(e=>e.k==='pay'),joins=all.filter(e=>e.k==='join'),lefts=all.filter(e=>e.k==='left');
+  const got=pays.reduce((a,e)=>a+e.p.a,0);
+  const list=lgTab==='all'?all:all.filter(e=>e.k===lgTab);
+  const who=s=>`<button type="button" class="lgname" data-act="open" data-id="${s.id}">${esc(s.name)}</button>`;
+  const row=e=>{const s=e.s,rm=`${t('room')} ${num(esc(s.room))}`;
+    if(e.k==='pay')return`<div class="xrow"><span class="xcat">${who(s)}<span class="sub">${t('lgPaid')} · ${t(e.p.h)} · ${rm}</span></span><b class="inc">+ ${rs(e.p.a)}</b></div>`;
+    if(e.k==='join')return`<div class="xrow"><span class="xcat">${who(s)}<span class="sub">${t('lgJoined')} · ${rm} · ${t('lgFee',rs(s.fee))}</span></span><span class="tag ok">${t('lgNew')}</span></div>`;
+    return`<div class="xrow"><span class="xcat">${who(s)}<span class="sub">${t('lgLeftT')} · ${rm}${s.left?` · ${t('lgOwe',rs(s.left))}`:''}</span></span><span class="tag soon">${t('lgLeftTag')}</span></div>`};
+  const days=[];list.forEach(e=>{const g=days[days.length-1];if(g&&g.d===e.d)g.es.push(e);else days.push({d:e.d,es:[e]})});
+  const body=days.map(({d,es})=>{const sum=es.filter(e=>e.k==='pay').reduce((a,e)=>a+e.p.a,0);
+    return`<div class="xday"><div class="xdh"><b>${relDate(d)}${d<TODAY-6?'':` · ${fmtS(d)}`}</b><span>${sum?`<span class="inc">+ ${rs(sum)}</span>`:''}</span></div>${es.map(row).join('')}</div>`}).join('');
+  const tab=(k,lab,n)=>`<button type="button" role="tab" data-act="lgtab" data-v="${k}" aria-pressed="${lgTab===k}" aria-selected="${lgTab===k}">${lab} (${num(n)})</button>`;
+  app.innerHTML=`<div class="xwrap"><div class="monbar"><button type="button" class="btn sec" style="background:var(--panel)" data-act="lgmon" data-v="-1" aria-label="${t('prevM')}">${I.back}</button><b>${MN[lang][lgM-1]} ${num(lgY)}</b><button type="button" class="btn sec" style="background:var(--panel)" data-act="lgmon" data-v="1" aria-label="${t('nextM')}" ${atNow?'disabled':''}>${I.next}</button></div>
+  <div class="card xsum"><div><span class="lab">${t('lgGot')}</span><b class="inc">${rs(got)}</b><span class="sub">${t('lgTimes',num(pays.length))}</span></div><div><span class="lab">${t('lgJoinH')}</span><b>${num(joins.length)}</b></div><div><span class="lab">${t('lgLeftH')}</span><b>${num(lefts.length)}</b></div></div>
+  <div class="card" style="gap:0"><div class="seg xtabs lgtabs" role="tablist">${tab('all',t('lgAll'),all.length)}${tab('pay',t('lgPayT'),pays.length)}${tab('join',t('lgJoinH'),joins.length)}${tab('left',t('lgLeftH'),lefts.length)}</div>
+  ${body||`<div class="empty">${t('lgNone')}</div>`}</div></div>`;
+}
+Object.assign(T.en,{ledger:'Ledger',lgAll:'All',lgPayT:'Paid',lgJoinH:'Joined',lgLeftH:'Left',lgGot:'Fees received',lgTimes:n=>n+' payments',lgPaid:'Paid',lgJoined:'Joined the hostel',lgLeftT:'Left the hostel',lgLeftTag:'Left',lgNew:'New',lgFee:a=>a+' a month',lgOwe:a=>'still owes '+a,lgNone:'Nothing happened in this month.'});
+Object.assign(T.ne,{ledger:'खाता',lgAll:'सबै',lgPayT:'तिरेका',lgJoinH:'आएका',lgLeftH:'गएका',lgGot:'उठेको शुल्क',lgTimes:n=>n+' पटक',lgPaid:'तिरे',lgJoined:'होस्टलमा आए',lgLeftT:'होस्टल छोडे',lgLeftTag:'गए',lgNew:'नयाँ',lgFee:a=>'महिनाको '+a,lgOwe:a=>a+' बाँकी',lgNone:'यो महिना केही भएन।'});
 function render(){
   document.documentElement.lang=lang;
   document.getElementById('note').textContent=t('note');
@@ -880,7 +1397,7 @@ function render(){
   document.getElementById('l-en').setAttribute('aria-pressed',lang==='en');
   document.getElementById('l-ne').setAttribute('aria-pressed',lang==='ne');
   renderNav();
-  ({settings:renderSettings,expenses:renderExpenses,list:renderHome,dues:renderList,pays:renderPays,people:renderPeople,past:renderPast,msgs:renderMsgs,one:renderOne,add:renderAdd,cal:renderCal,rooms:renderRooms})[view]();
+  ({ledger:renderLedger,settings:renderSettings,expenses:renderExpenses,list:renderHome,dues:renderList,pays:renderPays,people:renderPeople,past:renderPast,msgs:renderMsgs,one:renderOne,add:renderAdd,cal:renderCal,rooms:renderRooms})[view]();
 }
 let toastTimer;
 function toast(msg,undo){
@@ -892,7 +1409,7 @@ function toast(msg,undo){
 }
 const dlg=document.getElementById('pay');
 function openPay(s){
-  payState={id:s.id,how:Object.keys(cfg.pay).find(h=>cfg.pay[h])||'cash',amt:s.left||Math.max(s.fee-s.credit,0)};
+  payState={id:s.id,how:Object.keys(cfg.pay).find(h=>cfg.pay[h])||'cash',amt:s.left||Math.max(s.fee-s.credit,0),n:'',unit:'m'};
   drawPay();dlg.showModal();const a=document.getElementById('p-amt');a.focus();a.select();
 }
 function drawPay(){
@@ -900,6 +1417,7 @@ function drawPay(){
   dlg.innerHTML=`<form class="dlg" id="payf" novalidate><h2>${t('payTitle',esc(s.name))}</h2>
   <label style="display:grid;gap:4px;font-weight:600">${t('amount')}<input class="amt" id="p-amt" inputmode="numeric" value="${payState.amt}"></label>
   <div class="chips">${s.left?`<button type="button" class="chip" data-act="amt" data-v="${s.left}">${t('full')}</button>`:''}<button type="button" class="chip" data-act="amt" data-v="${s.fee}">${t('oneMonth')}</button></div>
+  <div class="chips" style="align-items:center">${t('forTime')}<input id="p-n" inputmode="numeric" value="${payState.n}" aria-label="${t('forTime')}" style="width:64px;text-align:center"><button type="button" class="chip" data-act="unit" data-v="d" aria-pressed="${payState.unit==='d'}">${t('uDays')}</button><button type="button" class="chip" data-act="unit" data-v="m" aria-pressed="${payState.unit==='m'}">${t('uMonths')}</button></div>
   <div class="after" id="p-after"></div>
   <div style="display:grid;gap:6px;font-weight:600">${t('how')}<div class="chips">${Object.keys(cfg.pay).filter(h=>cfg.pay[h]).map(h=>`<button type="button" class="chip" data-act="how" data-v="${h}" aria-pressed="${payState.how===h}">${h==='esewa'?'eSewa':h==='khalti'?'Khalti':t(h)}</button>`).join('')}</div></div>
   <div class="err" id="p-err" role="alert"></div>
@@ -907,39 +1425,55 @@ function drawPay(){
   updAfter();
 }
 const amtVal=()=>Number(String(document.getElementById('p-amt').value).replace(/[^\d]/g,''))||0;
+function periodAmt(){
+  const n=Number(String(payState.n).replace(/[^\d]/g,''))||0;if(!n)return;
+  const s=byId(payState.id),v=payState.unit==='m'?s.fee*n:Math.round(s.fee*n/30);
+  payState.amt=v;document.getElementById('p-amt').value=v;updAfter();
+}
 function updAfter(){
   const s=byId(payState.id),rem=Math.max(s.left-amtVal(),0);
   document.getElementById('p-after').textContent=rem?t('after',rs(rem)):t('afterNone');
 }
 T.en.subLeft=a=>a+' left';T.ne.subLeft=a=>a+' बाँकी';T.en.subSoon=a=>a+' coming';T.ne.subSoon=a=>a+' आउँदै';
-Object.assign(T.en,{calendar:'Calendar',rooms:'Rooms',wk:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],lDue:'To pay',lEnd:'Stay ends',nothing:'Nothing on this day.',prevM:'Previous month',nextM:'Next month',bed:'Bed',book:'Book',emptyB:'Empty',allBeds:'All beds',occupied:'Occupied',ending:'Ending soon',subBeds:a=>'In '+a+' rooms',subOcc:'Students staying',subEmpty:'Ready to book',subEnding:a=>'Free within '+a+' days',freeFrom:d=>'Empty from '+d,fullOf:(a,b)=>a+' of '+b+' full',floor:f=>'Floor '+f,roomErr:'No empty bed. Please free a bed first.'});
-Object.assign(T.ne,{calendar:'पात्रो',rooms:'कोठा',wk:['आइत','सोम','मंगल','बुध','बिहि','शुक्र','शनि'],lDue:'तिर्न बाँकी',lEnd:'बसाइ सकिने',nothing:'यो दिन केही छैन।',prevM:'अघिल्लो महिना',nextM:'अर्को महिना',bed:'बेड',book:'बुक गर्नुहोस्',emptyB:'खाली',allBeds:'सबै बेड',occupied:'भरिएको',ending:'चाँडै खाली हुने',subBeds:a=>a+' कोठामा',subOcc:'बसिरहेका विद्यार्थी',subEmpty:'बुक गर्न मिल्ने',subEnding:a=>a+' दिनभित्र खाली',freeFrom:d=>d+' देखि खाली',fullOf:(a,b)=>b+' मध्ये '+a+' भरिएको',floor:f=>'तला '+f,roomErr:'खाली बेड छैन। पहिले बेड खाली गर्नुहोस्।'});
+Object.assign(T.en,{reEdit:'Edit rooms',reDone:'Done',reHint:'Add or change blocks, rooms and beds. Changes save by themselves.',reName:'Edit name',reRemove:'Move / remove',reAddP:'Add person',reInBlock:'Block:',reRenameRoom:'Rename room',reDelRoom:'Delete room',reNoBeds:'No beds yet.',reRoomsN:n=>n+' rooms',reEditBlock:'Rename / colour',reDelBlock:'Delete block',reNewBlock:'New block',reBlockName:'Block name',reColor:'Colour',reRoomName:'Room name or number',reRoomPh:'e.g. 101 or Top floor',reBadChar:'Please do not use - < > " & in the name.',reRemoveT:n=>'Move or remove '+n,reNowIn:r=>'Now in bed '+r+'.',reMoveTo:'Move to this empty bed',reMoveBtn:'Move',reNoFree:'No empty bed to move to.',reLeft:'Left the hostel (finish stay)',reMoved:(n,b)=>n+' moved to bed '+b+'.',reRoomBusy:'Move the students out of this room first.',reRoomGone:r=>'Room '+r+' deleted.',reBlockBusy:'Move or delete the rooms in this block first.',reLastBlock:'Keep at least one block.',reBlockGone:n=>n+' deleted.',reNoRooms:'No rooms yet. Tap "Edit rooms" to add blocks and rooms.'});
+Object.assign(T.ne,{reEdit:'कोठा मिलाउनुहोस्',reDone:'सकियो',reHint:'ब्लक, कोठा र बेड थप्नुहोस् वा बदल्नुहोस्। परिवर्तन आफैं सेभ हुन्छ।',reName:'नाम बदल्नुहोस्',reRemove:'सार्ने / हटाउने',reAddP:'मान्छे थप्नुहोस्',reInBlock:'ब्लक:',reRenameRoom:'कोठाको नाम बदल्नुहोस्',reDelRoom:'कोठा हटाउनुहोस्',reNoBeds:'अहिलेसम्म बेड छैन।',reRoomsN:n=>n+' कोठा',reEditBlock:'नाम / रङ',reDelBlock:'ब्लक हटाउनुहोस्',reNewBlock:'नयाँ ब्लक',reBlockName:'ब्लकको नाम',reColor:'रङ',reRoomName:'कोठाको नाम वा नम्बर',reRoomPh:'जस्तै 101 वा माथिल्लो तला',reBadChar:'नाममा - < > " & नराख्नुहोस्।',reRemoveT:n=>n+' लाई सार्ने वा हटाउने',reNowIn:r=>'अहिले बेड '+r+' मा।',reMoveTo:'यो खाली बेडमा सार्नुहोस्',reMoveBtn:'सार्नुहोस्',reNoFree:'सार्न खाली बेड छैन।',reLeft:'होस्टल छाड्यो (बसाइ सकियो)',reMoved:(n,b)=>n+' लाई बेड '+b+' मा सारियो।',reRoomBusy:'पहिले यो कोठाका विद्यार्थीलाई सार्नुहोस्।',reRoomGone:r=>'कोठा '+r+' हटाइयो।',reBlockBusy:'पहिले यो ब्लकका कोठा सार्नुहोस् वा हटाउनुहोस्।',reLastBlock:'कम्तीमा एउटा ब्लक राख्नुहोस्।',reBlockGone:n=>n+' हटाइयो।',reNoRooms:'अहिलेसम्म कोठा छैन। ब्लक र कोठा थप्न "कोठा मिलाउनुहोस्" थिच्नुहोस्।'});
+Object.assign(T.en,{calToGet:'To collect this month',calGot:'Fees received',calFree:'Beds freeing up',calMoney:'Money in & out',calNoMoney:'No money in or out on this day.',calOpenMoney:'Open Money in & out',calAmtKey:'= Rs to collect (k = thousand)',block:'Block',allBlocks:'All blocks',calendar:'Calendar',rooms:'Rooms',wk:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],lDue:'To pay',lEnd:'Stay ends',nothing:'Nothing on this day.',prevM:'Previous month',nextM:'Next month',bed:'Bed',book:'Book',emptyB:'Empty',allBeds:'All beds',occupied:'Occupied',ending:'Ending soon',subBeds:a=>'In '+a+' rooms',subOcc:'Students staying',subEmpty:'Ready to book',subEnding:a=>'Free within '+a+' days',freeFrom:d=>'Empty from '+d,fullOf:(a,b)=>a+' of '+b+' full',floor:f=>'Floor '+f,roomErr:'No empty bed. Please free a bed first.',mapFreeNow:'beds empty now — tap one to add a student',mapNoFree:'No empty bed right now.',mapSoon:'Getting empty soon:',mapView:'Quick map',mapList:'Details'});
+Object.assign(T.ne,{calToGet:'यो महिना उठाउनुपर्ने',calGot:'उठेको शुल्क',calFree:'खाली हुने बेड',calMoney:'आम्दानी खर्च',calNoMoney:'यो दिन कुनै आम्दानी खर्च छैन।',calOpenMoney:'आम्दानी खर्च खोल्नुहोस्',calAmtKey:'= उठाउनुपर्ने रकम (k = हजार)',block:'ब्लक',allBlocks:'सबै ब्लक',calendar:'पात्रो',rooms:'कोठा',wk:['आइत','सोम','मंगल','बुध','बिहि','शुक्र','शनि'],lDue:'तिर्न बाँकी',lEnd:'बसाइ सकिने',nothing:'यो दिन केही छैन।',prevM:'अघिल्लो महिना',nextM:'अर्को महिना',bed:'बेड',book:'बुक गर्नुहोस्',emptyB:'खाली',allBeds:'सबै बेड',occupied:'भरिएको',ending:'चाँडै खाली हुने',subBeds:a=>a+' कोठामा',subOcc:'बसिरहेका विद्यार्थी',subEmpty:'बुक गर्न मिल्ने',subEnding:a=>a+' दिनभित्र खाली',freeFrom:d=>d+' देखि खाली',fullOf:(a,b)=>b+' मध्ये '+a+' भरिएको',floor:f=>'तला '+f,roomErr:'खाली बेड छैन। पहिले बेड खाली गर्नुहोस्।',mapFreeNow:'बेड अहिले खाली — विद्यार्थी थप्न थिच्नुहोस्',mapNoFree:'अहिले कुनै बेड खाली छैन।',mapSoon:'चाँडै खाली हुने:',mapView:'छोटो नक्सा',mapList:'विवरण'});
 Object.assign(T.en,{dashboard:'Dashboard',back:'Back',sortBy:'Sort by',sDue:'Payment due',sJoin:'Joining date (newest)',sName:'Name',finish:'Finish stay',del:'Delete',pastH:'Past students',pastTag:'Left the hostel',leftOn:'Left on',stayedH:'Stayed',stayed:n=>n===1?'1 month':n+' months',noPast:'No past students yet.',lLeft:'Finished stay and left',
 askFinishT:n=>'Finish stay for '+n+'?',askFinishB:r=>'This student will move to Past students, and bed '+r+' will become empty. All records are kept.',askOwe:a=>a+' is still left to pay.',yesFinish:'Yes, finish stay',
 askDelT:n=>'Delete '+n+'?',askDelB:'This removes the student and every payment record. Use it only for a student added by mistake. If the student has left, use Finish stay.',yesDel:'Yes, delete',noBack:'No, go back',finished:n=>n+' moved to Past students.',deleted:n=>n+' deleted.'});
 Object.assign(T.ne,{dashboard:'ड्यासबोर्ड',back:'फर्कनुहोस्',sortBy:'क्रम मिलाउनुहोस्',sDue:'तिर्ने दिन',sJoin:'आएको मिति (नयाँ पहिले)',sName:'नाम',finish:'बसाइ सक्नुहोस्',del:'हटाउनुहोस्',pastH:'पुराना विद्यार्थी',pastTag:'होस्टल छोडेको',leftOn:'छोडेको मिति',stayedH:'बसेको',stayed:n=>n+' महिना',noPast:'अहिलेसम्म कोही छैन।',lLeft:'बसाइ सकेर छोडेको',
 askFinishT:n=>n+' को बसाइ सक्ने हो?',askFinishB:r=>'यो विद्यार्थी पुराना विद्यार्थीको सूचीमा जान्छ र बेड '+r+' खाली हुन्छ। सबै विवरण सुरक्षित रहन्छ।',askOwe:a=>a+' अझै तिर्न बाँकी छ।',yesFinish:'हो, बसाइ सक्ने',
 askDelT:n=>n+' लाई हटाउने हो?',askDelB:'यसले विद्यार्थी र सबै भुक्तानी विवरण मेटाउँछ। गल्तीले थपेको भए मात्र प्रयोग गर्नुहोस्। विद्यार्थी गएको भए बसाइ सक्नुहोस् थिच्नुहोस्।',yesDel:'हो, हटाउने',noBack:'अहँ, फर्कने',finished:n=>n+' पुराना विद्यार्थीमा गयो।',deleted:n=>n+' हटाइयो।'});
+Object.assign(T.en,{stayCustom:'Custom',stayNum:'How many?',stayUnit:'Days or months',uDays:'Days',uMonths:'Months',stayErr:'Please write how long they will stay.'});
+Object.assign(T.ne,{stayCustom:'आफैं लेख्ने',stayNum:'कति?',stayUnit:'दिन वा महिना',uDays:'दिन',uMonths:'महिना',stayErr:'कृपया कति समय बस्ने लेख्नुहोस्।'});
+Object.assign(T.en,{expenses:'Money in & out',mIn:'Money in',mOut:'Money out',feesPlus:(a,b)=>'Fees '+a+' + other '+b,grocMonth:(a,b)=>'Groceries '+a+' · about '+b+' a day',leftOk:'Money in minus money out',leftBad:'Spent more than came in',mAddH:'Write an expense',mCalc:'Calculator',mUse:'Use this amount',mSave0:'Save',mOutBtn:'− Money out',mInBtn:'+ Money in',mWhat:'What for?',mWhen:'Which day?',mHow:'How much?',mNote:'Note (if you want)',mNotePh:'For example: rice 25 kg',mSave:a=>'Save '+a,mErr:'Please type the amount.',mSaved:(a,c)=>a+' saved for '+c+'.',mDeleted:(a,c)=>c+' '+a+' removed.',mDays:'Day by day',mDaysS:'Tap a day to see what was spent.',mNone:'Nothing written this month.',mByCat:'Where the money went',mInH:'Where the money came from',feesAuto:'Student fees (added by itself)',feeFrom:n=>'Fee from '+n,grocSub:a=>'Groceries '+a,inSub:a=>'In '+a,spentShort:'spent',
+cat_groc:'Groceries',cat_veg:'Vegetables',cat_milk:'Milk',cat_gas:'Gas',cat_elec:'Electricity',cat_water:'Water',cat_net:'Internet',cat_salary:'Staff salary',cat_repair:'Repair',cat_other:'Other',cat_sell:'Sold something',cat_laundry:'Laundry',cat_oin:'Other income'});
+Object.assign(T.ne,{expenses:'आम्दानी खर्च',mIn:'आएको पैसा',mOut:'गएको पैसा',feesPlus:(a,b)=>'शुल्क '+a+' + अरू '+b,grocMonth:(a,b)=>'किराना '+a+' · दिनको करिब '+b,leftOk:'आएको पैसाबाट गएको घटाएर',leftBad:'आएको भन्दा बढी खर्च भयो',mAddH:'खर्च लेख्नुहोस्',mCalc:'क्यालकुलेटर',mUse:'यो रकम राख्नुहोस्',mSave0:'सेभ गर्नुहोस्',mOutBtn:'− खर्च',mInBtn:'+ आम्दानी',mWhat:'केको लागि?',mWhen:'कुन दिन?',mHow:'कति?',mNote:'टिप्पणी (चाहे मात्र)',mNotePh:'जस्तै: चामल २५ केजी',mSave:a=>a+' सेभ गर्नुहोस्',mErr:'कृपया रकम लेख्नुहोस्।',mSaved:(a,c)=>c+' मा '+a+' सेभ भयो।',mDeleted:(a,c)=>c+' '+a+' हटाइयो।',mDays:'दिनदिनको हिसाब',mDaysS:'के खर्च भयो हेर्न दिनमा थिच्नुहोस्।',mNone:'यो महिना केही लेखिएको छैन।',mByCat:'पैसा कहाँ गयो',mInH:'पैसा कहाँबाट आयो',feesAuto:'विद्यार्थी शुल्क (आफैं जोडिन्छ)',feeFrom:n=>n+' बाट शुल्क',grocSub:a=>'किराना '+a,inSub:a=>'आम्दानी '+a,spentShort:'खर्च',
+cat_groc:'किराना',cat_veg:'तरकारी',cat_milk:'दूध',cat_gas:'ग्यास',cat_elec:'बिजुली',cat_water:'पानी',cat_net:'इन्टरनेट',cat_salary:'कर्मचारी तलब',cat_repair:'मर्मत',cat_other:'अरू',cat_sell:'सामान बेचेको',cat_laundry:'लुगा धुने',cat_oin:'अरू आम्दानी'});
 Object.assign(T.en,{daysLeft:n=>n===1?'1 day left':n+' days left',paidDays:n=>'Paid · '+n+' days left'});
 Object.assign(T.ne,{daysLeft:n=>n+' दिन बाँकी',paidDays:n=>'तिरेको · '+n+' दिन बाँकी'});
-Object.assign(T.en,{settings:'Settings',expenses:'Expenses',stAuto:'Changes save by themselves. Turn things on or off to match this hostel.',stHostel:'Hostel',stHostelName:'Hostel name',stShow:'What to show',mMsgs:'WhatsApp messages',mDep:'Security deposits',stFees:'Fees',stWhen:'When is the fee due?',bJoin:'On each joining date',bFixed:'Same date for all',stDay:'Which day of the month?',stDefFee:'Usual monthly fee',stDates:'Reminders and dates',stSoon:'Show as Due soon',stEnd:'Show as Ending soon',nDays:n=>n===1?'1 day before':n+' days before',stPay:'How students can pay',payKeep:'Keep at least one way to pay.',stForm:'New student form',fCollege:'College',fAddress:'Address',stOwn:'Add your own question',stOwnPh:'For example: Blood group',stAddBtn:'Add',stMsg:'WhatsApp message words',stMsgHint:'Keep the words in curly brackets. The app fills them in: {name} {amount} {date} {hostel}',tSoon:'Before the due date',tToday:'On the due date',tLate:'When late',stRooms:'Rooms and beds',stRoomNo:'Room number',stBeds:'Beds',stAddRoom:'Add room',stAddBed:'Add bed',roomDup:'That room already exists.',roomBad:'Please write a room number.',fDeposit:'Security deposit',deposit:'Deposit held',giveBack:a=>'Give back '+a,stillOwes:a=>'Student still owes '+a,settleZero:'Nothing to give back or collect.',lSettle:(a,b)=>`Deposit: ${a} used for dues, ${b} given back`,receipt:'Receipt',rcNo:'Receipt no.',rcDate:'Date',rcAmt:'Amount',rcHow:'Paid by',rcLeft:'Left to pay now',rcSend:'Send on WhatsApp',close:'Close',rcMock:'In the real app this opens WhatsApp with the receipt.',collected:'Collected this month',spent:'Spent this month',remain:'Left over',expWhat:'What was it for?',expAmt:'How much?',expAdd:'Add expense',expErr:'Please write what it was for and the amount.',expChips:['Electricity','Water','Internet','Food and groceries','Salary','Repair']});
-Object.assign(T.ne,{settings:'सेटिङ',expenses:'खर्च',stAuto:'परिवर्तन आफैं सेभ हुन्छ। यो होस्टललाई चाहिने कुरा मात्र खोल्नुहोस्।',stHostel:'होस्टल',stHostelName:'होस्टलको नाम',stShow:'के देखाउने',mMsgs:'व्हाट्सएप सन्देश',mDep:'धरौटी',stFees:'शुल्क',stWhen:'शुल्क कहिले तिर्ने?',bJoin:'आएको मितिमा',bFixed:'सबैको एउटै मिति',stDay:'महिनाको कुन गते?',stDefFee:'सामान्य मासिक शुल्क',stDates:'सन्देश र मिति',stSoon:'तिर्ने बेला देखाउने',stEnd:'चाँडै खाली देखाउने',nDays:n=>n+' दिन अघि',stPay:'कसरी तिर्न मिल्छ',payKeep:'कम्तीमा एउटा तरिका राख्नुहोस्।',stForm:'नयाँ विद्यार्थी फारम',fCollege:'कलेज',fAddress:'ठेगाना',stOwn:'आफ्नै प्रश्न थप्नुहोस्',stOwnPh:'जस्तै: रक्त समूह',stAddBtn:'थप्नुहोस्',stMsg:'व्हाट्सएप सन्देशका शब्द',stMsgHint:'{name} {amount} {date} {hostel} जस्ता शब्द नहटाउनुहोस्। एपले आफैं भर्छ।',tSoon:'तिर्ने दिन अघि',tToday:'तिर्ने दिनमा',tLate:'ढिला भएपछि',stRooms:'कोठा र बेड',stRoomNo:'कोठा नम्बर',stBeds:'बेड संख्या',stAddRoom:'कोठा थप्नुहोस्',stAddBed:'बेड थप्नुहोस्',roomDup:'यो कोठा पहिले नै छ।',roomBad:'कृपया कोठा नम्बर लेख्नुहोस्।',fDeposit:'धरौटी',deposit:'धरौटी रकम',giveBack:a=>a+' फिर्ता दिने',stillOwes:a=>'विद्यार्थीले अझै '+a+' तिर्नुपर्ने',settleZero:'दिनु वा लिनु केही छैन।',lSettle:(a,b)=>`धरौटी: ${a} बाँकीमा कट्यो, ${b} फिर्ता`,receipt:'रसिद',rcNo:'रसिद नं.',rcDate:'मिति',rcAmt:'रकम',rcHow:'तिरेको तरिका',rcLeft:'अहिले बाँकी',rcSend:'व्हाट्सएपमा पठाउनुहोस्',close:'बन्द गर्नुहोस्',rcMock:'साँचो एपमा यसले रसिदसहित व्हाट्सएप खोल्छ।',collected:'यो महिना उठेको',spent:'यो महिना खर्च',remain:'बचेको',expWhat:'केमा खर्च भयो?',expAmt:'कति?',expAdd:'खर्च थप्नुहोस्',expErr:'कृपया खर्चको कारण र रकम लेख्नुहोस्।',expChips:['बिजुली','पानी','इन्टरनेट','खाना र किराना','तलब','मर्मत']});
+Object.assign(T.en,{settings:'Settings',expenses:'Money in & out',stAuto:'Changes save by themselves. Turn things on or off to match this hostel.',stHostel:'Hostel',stHostelName:'Hostel name',stShow:'What to show',mMsgs:'WhatsApp messages',mDep:'Security deposits',stFees:'Fees',stWhen:'When is the fee due?',bJoin:'On each joining date',bFixed:'Same date for all',stDay:'Which day of the month?',stDefFee:'Usual monthly fee',stDates:'Reminders and dates',stSoon:'Show as Due soon',stEnd:'Show as Ending soon',nDays:n=>n===1?'1 day before':n+' days before',stPay:'How students can pay',payKeep:'Keep at least one way to pay.',stForm:'New student form',fCollege:'College',fAddress:'Address',stOwn:'Add your own question',stOwnPh:'For example: Blood group',stAddBtn:'Add',stMsg:'WhatsApp message words',stMsgHint:'Keep the words in curly brackets. The app fills them in: {name} {amount} {date} {hostel}',tSoon:'Before the due date',tToday:'On the due date',tLate:'When late',stRooms:'Rooms and beds',stRoomNo:'Room number',stBeds:'Beds',stAddRoom:'Add room',stAddBed:'Add bed',roomDup:'That room already exists.',roomBad:'Please write a room number.',fDeposit:'Security deposit',deposit:'Deposit held',giveBack:a=>'Give back '+a,stillOwes:a=>'Student still owes '+a,settleZero:'Nothing to give back or collect.',lSettle:(a,b)=>`Deposit: ${a} used for dues, ${b} given back`,receipt:'Receipt',rcNo:'Receipt no.',rcDate:'Date',rcAmt:'Amount',rcHow:'Paid by',rcLeft:'Left to pay now',rcSend:'Send on WhatsApp',close:'Close',rcMock:'In the real app this opens WhatsApp with the receipt.',collected:'Collected this month',spent:'Spent this month',remain:'Left over',expWhat:'What was it for?',expAmt:'How much?',expAdd:'Add expense',expErr:'Please write what it was for and the amount.',expChips:['Electricity','Water','Internet','Food and groceries','Salary','Repair']});
+Object.assign(T.ne,{settings:'सेटिङ',expenses:'आम्दानी खर्च',stAuto:'परिवर्तन आफैं सेभ हुन्छ। यो होस्टललाई चाहिने कुरा मात्र खोल्नुहोस्।',stHostel:'होस्टल',stHostelName:'होस्टलको नाम',stShow:'के देखाउने',mMsgs:'व्हाट्सएप सन्देश',mDep:'धरौटी',stFees:'शुल्क',stWhen:'शुल्क कहिले तिर्ने?',bJoin:'आएको मितिमा',bFixed:'सबैको एउटै मिति',stDay:'महिनाको कुन गते?',stDefFee:'सामान्य मासिक शुल्क',stDates:'सन्देश र मिति',stSoon:'तिर्ने बेला देखाउने',stEnd:'चाँडै खाली देखाउने',nDays:n=>n+' दिन अघि',stPay:'कसरी तिर्न मिल्छ',payKeep:'कम्तीमा एउटा तरिका राख्नुहोस्।',stForm:'नयाँ विद्यार्थी फारम',fCollege:'कलेज',fAddress:'ठेगाना',stOwn:'आफ्नै प्रश्न थप्नुहोस्',stOwnPh:'जस्तै: रक्त समूह',stAddBtn:'थप्नुहोस्',stMsg:'व्हाट्सएप सन्देशका शब्द',stMsgHint:'{name} {amount} {date} {hostel} जस्ता शब्द नहटाउनुहोस्। एपले आफैं भर्छ।',tSoon:'तिर्ने दिन अघि',tToday:'तिर्ने दिनमा',tLate:'ढिला भएपछि',stRooms:'कोठा र बेड',stRoomNo:'कोठा नम्बर',stBeds:'बेड संख्या',stAddRoom:'कोठा थप्नुहोस्',stAddBed:'बेड थप्नुहोस्',roomDup:'यो कोठा पहिले नै छ।',roomBad:'कृपया कोठा नम्बर लेख्नुहोस्।',fDeposit:'धरौटी',deposit:'धरौटी रकम',giveBack:a=>a+' फिर्ता दिने',stillOwes:a=>'विद्यार्थीले अझै '+a+' तिर्नुपर्ने',settleZero:'दिनु वा लिनु केही छैन।',lSettle:(a,b)=>`धरौटी: ${a} बाँकीमा कट्यो, ${b} फिर्ता`,receipt:'रसिद',rcNo:'रसिद नं.',rcDate:'मिति',rcAmt:'रकम',rcHow:'तिरेको तरिका',rcLeft:'अहिले बाँकी',rcSend:'व्हाट्सएपमा पठाउनुहोस्',close:'बन्द गर्नुहोस्',rcMock:'साँचो एपमा यसले रसिदसहित व्हाट्सएप खोल्छ।',collected:'यो महिना उठेको',spent:'यो महिना खर्च',remain:'बचेको',expWhat:'केमा खर्च भयो?',expAmt:'कति?',expAdd:'खर्च थप्नुहोस्',expErr:'कृपया खर्चको कारण र रकम लेख्नुहोस्।',expChips:['बिजुली','पानी','इन्टरनेट','खाना र किराना','तलब','मर्मत']});
 Object.assign(T.en,{dueList:'Due list',allPays:'All payments',seeAll:'See all',toPay:'To pay',hToCollect:'To collect this month',hCollected:'Collected so far',hStill:'Still left',subFree:n=>n===1?'1 bed empty':n+' beds empty',newThis:n=>n+' new this month',pctDone:p=>p+'% collected',subToday:a=>a+' today',inclOld:'Includes older dues',whoPay:'Who has to pay',latest:'Latest payments',leaving:'Leaving soon',nobodyLeaving:'Nobody is leaving soon.',allPaid:'Everyone has paid.',todaySum:(l,d)=>l||d?`Today: ${l} late and ${d} due today.`:'Nothing is late today.',sendRem:'Send reminders',chartT:'Money collected',chartS:'Last 6 months',soFar:'so far',yesterday:'Yesterday',daysAgo:n=>n+' days ago',rMonth:'This month',rAll:'All time',total:'Total'});
 Object.assign(T.ne,{dueList:'बाँकी सूची',allPays:'सबै भुक्तानी',seeAll:'सबै हेर्नुहोस्',toPay:'तिर्न बाँकी',hToCollect:'यो महिना उठाउनुपर्ने',hCollected:'अहिलेसम्म उठेको',hStill:'अझै बाँकी',subFree:n=>n+' बेड खाली',newThis:n=>'यो महिना '+n+' नयाँ',pctDone:p=>p+'% उठ्यो',subToday:a=>'आज '+a,inclOld:'पुरानो बाँकीसहित',whoPay:'तिर्न बाँकी भएका',latest:'पछिल्ला भुक्तानी',leaving:'चाँडै जाने',nobodyLeaving:'चाँडै जाने कोही छैन।',allPaid:'सबैले तिरिसके।',todaySum:(l,d)=>l||d?`आज: ${l} जना ढिला, ${d} जनाको आज तिर्ने दिन।`:'आज कोही ढिला छैन।',sendRem:'सन्देश पठाउनुहोस्',chartT:'उठेको पैसा',chartS:'पछिल्ला ६ महिना',soFar:'अहिलेसम्म',yesterday:'हिजो',daysAgo:n=>n+' दिन अघि',rMonth:'यो महिना',rAll:'सबै',total:'जम्मा'});
 Object.assign(T.en,{stAuto:'Tap a section to open it. Everything saves by itself.',secHostel:'Hostel details',secFees:'Fees and due dates',secRem:'Reminder timing',secMsg:'WhatsApp message',secShow:'Show in the menu',secPay:'Ways to pay',secForm:'New student form',secRooms:'Rooms and beds',qName:'What is your hostel called?',helpName:'This name goes on messages and receipts.',qLang:'Which language do you want?',qWhen:'When do students pay?',optJoin:'On the date they joined',optFixed:'Same date for everyone',qDay:'Which date of the month?',qFee:'Usual monthly fee',helpFee:'Filled in for you when adding a student.',qSoon:'When should reminders start?',helpSoon:'The student turns yellow and goes on the message list.',optBefore:n=>n===1?'1 day before the due date':n+' days before the due date',qEnd:'When should a bed show as ending soon?',helpEnd:'The bed turns yellow so you can look for a new student.',optEnd:n=>n+' days before the stay ends',qMsgPick:'Which message do you want to change?',qMsgWrite:'Write your message',addWord:'Add to message:',tokName:'Student name',tokAmt:'Amount',tokDate:'Date',tokHostel:'Hostel name',preview:'This is how it will look',tplReset:'Go back to the original words',showHint:'Turn off what this hostel does not need.',formHint:'These questions appear when you add a student.',on:'On',off:'Off',qRoom:'Which room?',newRoomOpt:'+ Add a new room',qRoomNo:'New room number',qBedsN:'How many beds?',savedS:'Saved',sumJoin:'Due on joining date',sumFixed:n=>'Due on date '+n+' every month',sumRem:(a,b)=>`Starts ${a} days before · Beds show ${b} days before`,sumMsg:'Change the words students receive',sumForm:n=>n===1?'1 extra question':n+' extra questions',sumRooms:(a,b)=>`${a} rooms, ${b} beds`});
 Object.assign(T.ne,{stAuto:'खोल्न कुनै भागमा थिच्नुहोस्। सबै आफैं सेभ हुन्छ।',secHostel:'होस्टलको विवरण',secFees:'शुल्क र तिर्ने दिन',secRem:'सन्देशको समय',secMsg:'व्हाट्सएप सन्देश',secShow:'मेनुमा देखाउने',secPay:'तिर्ने तरिका',secForm:'नयाँ विद्यार्थी फारम',secRooms:'कोठा र बेड',qName:'तपाईंको होस्टलको नाम के हो?',helpName:'यो नाम सन्देश र रसिदमा आउँछ।',qLang:'कुन भाषा चाहिन्छ?',qWhen:'विद्यार्थीले कहिले तिर्छन्?',optJoin:'आएको मितिमा',optFixed:'सबैले एउटै मितिमा',qDay:'महिनाको कुन गते?',qFee:'सामान्य मासिक शुल्क',helpFee:'विद्यार्थी थप्दा आफैं भरिन्छ।',qSoon:'सन्देश कहिलेदेखि सुरु गर्ने?',helpSoon:'विद्यार्थी पहेँलो हुन्छ र सन्देश सूचीमा आउँछ।',optBefore:n=>'तिर्ने दिनभन्दा '+n+' दिन अघि',qEnd:'बेड कहिले चाँडै खाली देखाउने?',helpEnd:'नयाँ विद्यार्थी खोज्न बेड पहेँलो हुन्छ।',optEnd:n=>'बसाइ सकिनुभन्दा '+n+' दिन अघि',qMsgPick:'कुन सन्देश बदल्ने?',qMsgWrite:'आफ्नो सन्देश लेख्नुहोस्',addWord:'सन्देशमा थप्नुहोस्:',tokName:'विद्यार्थीको नाम',tokAmt:'रकम',tokDate:'मिति',tokHostel:'होस्टलको नाम',preview:'यस्तो देखिन्छ',tplReset:'सुरुकै शब्दमा फर्कनुहोस्',showHint:'यो होस्टललाई नचाहिने कुरा बन्द गर्नुहोस्।',formHint:'विद्यार्थी थप्दा यी प्रश्न आउँछन्।',on:'खुला',off:'बन्द',qRoom:'कुन कोठा?',newRoomOpt:'+ नयाँ कोठा थप्नुहोस्',qRoomNo:'नयाँ कोठा नम्बर',qBedsN:'कति बेड?',savedS:'सेभ भयो',sumJoin:'आएको मितिमा तिर्ने',sumFixed:n=>'हरेक महिना '+n+' गते तिर्ने',sumRem:(a,b)=>`${a} दिन अघि सुरु · बेड ${b} दिन अघि`,sumMsg:'विद्यार्थीले पाउने शब्द बदल्नुहोस्',sumForm:n=>n+' थप प्रश्न',sumRooms:(a,b)=>`${a} कोठा, ${b} बेड`});
-Object.assign(T.en,{note:'Demo with made-up students. Nothing is saved when you close or refresh this page. WhatsApp buttons open a real chat to the test number 9861828821.',demo:'Press Send in WhatsApp, then come back here.',testTo:'Test number: 9861828821',rcOpened:'WhatsApp opened with the receipt.'});
-Object.assign(T.ne,{note:'यो नमुना हो, विद्यार्थीहरू काल्पनिक हुन्। पेज बन्द गर्दा वा रिफ्रेस गर्दा केही सेभ हुँदैन। व्हाट्सएप बटनले परीक्षण नम्बर ९८६१८२८८२१ मा साँचो च्याट खोल्छ।',demo:'व्हाट्सएपमा Send थिचेर यहाँ फर्कनुहोस्।',testTo:'परीक्षण नम्बर: ९८६१८२८८२१',rcOpened:'रसिदसहित व्हाट्सएप खुल्यो।'});
+Object.assign(T.en,{note:'Demo. Nothing is saved when you close or refresh this page. WhatsApp buttons open a real chat to the test number 9861828821.',demo:'Press Send in WhatsApp, then come back here.',testTo:'Test number: 9861828821',rcOpened:'WhatsApp opened with the receipt.'});
+Object.assign(T.ne,{note:'यो नमुना हो। पेज बन्द गर्दा वा रिफ्रेस गर्दा केही सेभ हुँदैन। व्हाट्सएप बटनले परीक्षण नम्बर ९८६१८२८८२१ मा साँचो च्याट खोल्छ।',demo:'व्हाट्सएपमा Send थिचेर यहाँ फर्कनुहोस्।',testTo:'परीक्षण नम्बर: ९८६१८२८८२१',rcOpened:'रसिदसहित व्हाट्सएप खुल्यो।'});
+Object.assign(T.en,{dashboard:'Home',navMoney:'Money'});
+Object.assign(T.ne,{dashboard:'होम',navMoney:'पैसा'});
 T.en.esewa='eSewa';T.en.khalti='Khalti';T.ne.esewa='eSewa';T.ne.khalti='Khalti';
-function applyPay(s,amt,how){
+function applyPay(s,amt,how,d=TODAY,quiet=false){
   const snap=JSON.stringify(s),arr=S.includes(s)?S:PAST,i=arr.indexOf(s);
   let extra=amt-s.left;
   if(extra>=0){s.left=0;s.lateSince=null;s.credit+=extra;
     while(s.credit>=s.fee){s.nextDue=addMonth(s.nextDue,jdOf(s));s.credit-=s.fee}
   }else s.left-=amt;
-  s.pays.unshift({d:TODAY,a:amt,h:how});
-  s.log.push({d:TODAY,k:'lPaid',a:amt,h:how});
+  s.pays.unshift({d,a:amt,h:how});
+  s.log.push({d,k:'lPaid',a:amt,h:how});
   s.sent=false;
+  if(quiet)return;
   render();
   toast(t('saved',rs(amt),s.name),()=>{arr[i]=JSON.parse(snap);render()});
 }
@@ -950,8 +1484,10 @@ document.addEventListener('input',e=>{
   if(e.target.id==='s-fee')cfg.defaultFee=Number(e.target.value.replace(/\D/g,''))||0;
   if(e.target.dataset.tpl){cfg.tpl[lang][e.target.dataset.tpl]=fromFriendly(e.target.value);document.getElementById('s-preview').textContent=previewText()}
   if(e.target.id==='p-amt'){payState.amt=e.target.value;updAfter()}
+  if(e.target.id==='p-n'){payState.n=e.target.value;periodAmt()}
 });
 document.addEventListener('change',e=>{
+  if(e.target.id==='a-block'){addBlk=e.target.value;document.getElementById('a-room').innerHTML=bedOpts(addBlk);return}
   if(e.target.id==='s-name'||e.target.id==='s-fee'){render();toast(t('savedS'));return}
   if(e.target.dataset.tpl){toast(t('savedS'));return}
   const k=e.target.dataset.set;if(!k)return;const v=e.target.value;
@@ -981,10 +1517,15 @@ document.addEventListener('submit',e=>{
     if(!fee){err.textContent=t('feeErr');return}
     if(!g('a-room')){err.textContent=t('roomErr');return}
     const y=+g('a-y'),m=+g('a-m'),d=+g('a-d'),join=toIdx(y,m,Math.min(d,ML[y][m-1]));
+    let months=stay,days=0;
+    if(stayCustom){const n=Number(g('a-stayn').replace(/\D/g,''));if(!n){err.textContent=t('stayErr');return}
+      if(g('a-stayu')==='d'){days=n;months=0;let p=join;while(p<join+days){months++;const x=addMonth(p,d);if(x===p)break;p=x}}else months=n}
+    const paidAmt=addPaid?Number(g('a-paid').replace(/[^\d]/g,'')):0;if(addPaid&&!paidAmt){err.textContent=t('amtErr');return}
     const ds=dues(join,d),last=ds[ds.length-1];
     const extra={};if(cfg.fields.college)extra[t('fCollege')]=g('a-college');if(cfg.fields.address)extra[t('fAddress')]=g('a-address');cfg.custom.forEach((c,i)=>extra[c]=g('a-c'+i));
-    S.push({id:nextId++,name,ph,gd:gd||ph,room:g('a-room'),fee,join,jd:d,months:stay,left:fee,lateSince:last,nextDue:addMonth(last,cfg.billing==='fixed'?cfg.billDay:d),pays:[],log:[{d:join,k:'lJoin'}],credit:0,sent:false,dep:Number(g('a-dep').replace(/\D/g,''))||0,extra});
-    bookBed=null;view='people';peopleSort='join';pq='';render();toast(t('addedS',name));
+    S.push({id:nextId++,name,ph,gd:gd||ph,room:g('a-room'),fee,join,jd:d,months,...(days?{days}:{}),left:fee,lateSince:last,nextDue:addMonth(last,cfg.billing==='fixed'?cfg.billDay:d),pays:[],log:[{d:join,k:'lJoin'}],credit:0,sent:false,dep:Number(g('a-dep').replace(/\D/g,''))||0,extra});
+    if(paidAmt)applyPay(S[S.length-1],paidAmt,addHow,Math.min(join,TODAY),true);
+    bookBed=null;stayCustom=false;stay=12;view='people';peopleSort='join';pq='';render();toast(t('addedS',name));
   }
 });
 document.addEventListener('click',e=>{
@@ -992,6 +1533,7 @@ document.addEventListener('click',e=>{
   const{act,v}=b.dataset,s=b.dataset.id?byId(+b.dataset.id):null;
   if(act==='lang'){lang=v;if(dlg.open)dlg.close();render()}
   if(act==='go'){view=v;bookBed=null;render();window.scrollTo(0,0)}
+  if(act==='dues'){view='dues';filter=v;q='';render();window.scrollTo(0,0)}
   if(act==='filter'){filter=filter===v?'topay':v;render()}
   if(act==='open'){if(view!=='one')backTo=view;cur=s.id;view='one';render();window.scrollTo(0,0)}
   if(act==='pay')openPay(s);
@@ -1000,7 +1542,10 @@ document.addEventListener('click',e=>{
   if(act==='waopen'){setTimeout(()=>{wa.step='confirm';render()},150)}
   if(act==='wano'){wa.step='ready';render()}
   if(act==='wayes'){const x=S.find(y=>y.id===wa.id);x.sent=true;x.log.push({d:TODAY,k:'lMsg'});wa.step='ready';toast(t('sentOk',x.name));render()}
-  if(act==='stay'){stay=+v;document.querySelectorAll('[data-act="stay"]').forEach(c=>c.setAttribute('aria-pressed',+c.dataset.v===stay))}
+  if(act==='stay'){stayCustom=v==='c';if(!stayCustom)stay=+v;document.querySelectorAll('[data-act="stay"]').forEach(c=>c.setAttribute('aria-pressed',stayCustom?c.dataset.v==='c':+c.dataset.v===stay));const box=document.getElementById('a-stayc');box.hidden=!stayCustom;if(stayCustom)document.getElementById('a-stayn').focus()}
+  if(act==='unit'){payState.unit=v;document.querySelectorAll('[data-act="unit"]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.v===v));periodAmt()}
+  if(act==='apaid'){addPaid=v==='1';document.querySelectorAll('[data-act="apaid"]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.v===v));document.getElementById('a-paidc').hidden=!addPaid;if(addPaid){const a=document.getElementById('a-paid');if(!a.value)a.value=document.getElementById('a-fee').value;a.focus();a.select()}}
+  if(act==='ahow'){addHow=v;document.querySelectorAll('[data-act="ahow"]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.v===v))}
   if(act==='amt'){payState.amt=v;document.getElementById('p-amt').value=v;updAfter()}
   if(act==='how'){payState.how=v;document.querySelectorAll('[data-act="how"]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.v===v))}
   if(act==='paycancel')dlg.close();
@@ -1015,16 +1560,30 @@ document.addEventListener('click',e=>{
   if(act==='bedadd'){const has=BEDS.filter(b=>b.startsWith(v+'-')).map(b=>b.split('-')[1]);const L='ABCDEFGHIJKL'.split('').find(c=>!has.includes(c));if(L){BEDS.push(v+'-'+L);BEDS.sort();render()}}
   if(act==='beddel'){if(!S.some(x=>x.room===v)){BEDS=BEDS.filter(b=>b!==v);render()}}
   if(act==='roomadd'){const r=document.getElementById('s-room').value.trim(),n=+document.getElementById('s-beds').value,err=document.getElementById('s-err');
-    if(!/^[0-9]+$/.test(r)){err.textContent=t('roomBad');return}
-    if(BEDS.some(b=>b.startsWith(r+'-'))){err.textContent=t('roomDup');return}
-    for(let i=0;i<n;i++)BEDS.push(r+'-'+'ABCDEF'[i]);BEDS.sort();setRoom=r;render();toast(t('savedS'))}
+    {const m=roomNameErr(r);if(m){err.textContent=m;return}}
+    RB[r]=document.getElementById('s-block').value;for(let i=0;i<n;i++)BEDS.push(r+'-'+'ABCDEF'[i]);BEDS.sort();setRoom=r;render();toast(t('savedS'))}
   if(act==='setopen'){setOpen=setOpen===v?null:v;render()}
   if(act==='tok'){const a=document.getElementById('s-tpl'),ins=`[${tokLabel(v)}]`,st=a.selectionStart??a.value.length,en=a.selectionEnd??st;a.value=a.value.slice(0,st)+ins+a.value.slice(en);a.dispatchEvent(new Event('input',{bubbles:true}));a.focus();a.selectionStart=a.selectionEnd=st+ins.length}
   if(act==='tplreset'){cfg.tpl[lang][msgKey]=DEF_TPL[lang][msgKey];render();toast(t('savedS'))}
   if(act==='receipt')openReceipt(s,+v);
   if(act==='rcsend'){setTimeout(()=>{askDlg.close();toast(t('rcOpened'))},150)}
-  if(act==='expq')document.getElementById('e-what').value=v;
-  if(act==='expadd'){const w=document.getElementById('e-what').value.trim(),a=Number(document.getElementById('e-amt').value.replace(/\D/g,''));if(!w||!a){document.getElementById('e-err').textContent=t('expErr');return}EXP.push({d:TODAY,what:w,a});render()}
+  if(act==='key')calcKey(v);
+  if(act==='calc'){calcOpen=!calcOpen;calc='';render()}
+  if(act==='calcuse'){const r=Math.round(calcVal(calc));if(r>0)mAmt=String(r);calc='';calcOpen=false;render();document.getElementById('m-amt').focus({preventScroll:true})}
+  if(act==='mtype'){mType=v;mCat=CATS[v][0];render()}
+  if(act==='mcat'){mCat=v;document.querySelectorAll('[data-act="mcat"]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.v===v))}
+  if(act==='mdate'){mDay=+v;document.querySelectorAll('[data-act="mdate"]').forEach(c=>c.setAttribute('aria-pressed',+c.dataset.v===mDay))}
+  if(act==='mday'){mOpen=mOpen===+v?null:+v;render()}
+  if(act==='lgmon'){let m=lgM+ +v,y=lgY;if(m<1){m=12;y--}if(m>12){m=1;y++}if(ML[y]&&toIdx(y,m,1)<=TODAY){lgY=y;lgM=m;render()}}
+  if(act==='lgtab'){lgTab=v;render()}
+  if(act==='mmon'){let m=monM+ +v,y=monY;if(m<1){m=12;y--}if(m>12){m=1;y++}if(ML[y]&&toIdx(y,m,1)<=TODAY){monY=y;monM=m;render()}}
+  if(act==='mnew'){mType=v;mCat=CATS[v][0];mDay=TODAY;mAmt='';calc='';calcOpen=false;mForm=true;render();document.getElementById('m-amt').focus()}
+  if(act==='mclose'){mForm=false;calcOpen=false;render()}
+  if(act==='mtab'){mTab=v;render()}
+  if(act==='msave'){const a=Math.round(+mAmt);if(!(a>0)){document.getElementById('m-err').textContent=t('mErr');return}
+    const note=document.getElementById('m-note').value.trim(),e={id:expId++,d:mDay,type:mType,cat:mCat,a,note};EXP.push(e);mAmt='';calc='';calcOpen=false;mForm=false;mTab='days';[monY,monM]=fromIdx(mDay);mOpen=mDay;render();
+    toast(t('mSaved',rs(a),catName(mCat)),()=>{EXP=EXP.filter(x=>x!==e);render()})}
+  if(act==='mdel'){const e=EXP.find(x=>x.id===+v);if(e){EXP=EXP.filter(x=>x!==e);render();toast(t('mDeleted',rs(e.a),catName(e.cat)),()=>{EXP.push(e);render()})}}
   if(act==='psort'){peopleSort=v;render()}
   if(act==='prange'){payRange=v;render()}
   if(act==='finish'||act==='delete')openAsk(act,s);
@@ -1033,11 +1592,15 @@ document.addEventListener('click',e=>{
   if(act==='calmove'){let m=calM+ +v,y=calY;if(m<1){m=12;y--}if(m>12){m=1;y++}if(ML[y]){calY=y;calM=m;calSel=toIdx(y,m,1);render()}}
   if(act==='caltoday'){[calY,calM]=fromIdx(TODAY);calSel=TODAY;render()}
   if(act==='day'){calSel=+v;render()}
+  if(act==='calmoney'){const[y,m]=fromIdx(+v);monY=y;monM=m;mOpen=+v;mTab='days';view='expenses';render();const el=document.getElementById('mday-'+v);el?el.scrollIntoView({block:'center'}):window.scrollTo(0,0)}
   if(act==='roomf'){roomF=roomF===v?'all':v;render()}
+  if(act==='blockf'){blockF=v;render()}
+  if(act==='rview'){roomView=v;render()}
   if(act==='book'){bookBed=v;view='add';render();window.scrollTo(0,0)}
 });
 render();
 </script>
+<script src="store.js"></script>
 
 </body>
 </html>
