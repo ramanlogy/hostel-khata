@@ -61,49 +61,7 @@
     PAST.forEach(recalc);
   }
 
-  // Sample hostel: 50 made-up students in 3 blocks (60 beds, 10 empty).
-  // Join dates count back from today, so late / due today / paid look right on any day.
-  function fillSample(name){
-    const N=['Sita Gurung','Bibek Thapa','Anisha Poudel','Roshan Tamang','Kabita Adhikari','Suman Shrestha','Pooja Karki','Nabin Magar','Rina Rai','Dipesh KC',
-      'Sabina Lama','Prakash Bhandari','Asmita Ghimire','Kiran Basnet','Sarita Khadka','Ramesh Bhattarai','Manisha Sapkota','Aarav Joshi','Srijana Pandey','Bikash Chaudhary',
-      'Puja Maharjan','Sanjay Yadav','Nisha Thapa Magar','Rohit Dahal','Anjali Subedi','Sagar Neupane','Laxmi Bista','Sujan Rana','Bina Tharu','Aashish Koirala',
-      'Sunita Sherpa','Hari Acharya','Rachana Regmi','Milan Pokharel','Smriti Dhakal','Rajan Oli','Kritika Shahi','Niraj Limbu','Sushma Bhusal','Ujjwal Gautam',
-      'Prerana Khatri','Sandesh Lamsal','Gita Malla','Bishal Pun','Aakriti Sharma','Deepak Rawal','Monika Thakuri','Saroj Parajuli','Elina Shakya','Prabin Kunwar'];
-    // 9 paid students out of 10, plus some late, part paid and due today.
-    const ST=['paid','paid','late1','paid','paid','part','paid','paid','late2','paid','paid','today','paid','late1','paid','paid','paid','part','paid','late1',
-      'paid','paid','paid','late2','paid','today','paid','paid','late1','paid','paid','paid','part','paid','paid','late1','paid','paid','paid','paid',
-      'late2','paid','paid','paid','late1','paid','paid','paid','paid','paid'];
-    S=[];PAST=[];EXP=[];BEDS=[];RB={};nextId=1;expId=1;cfg.name=name;
-    BLK=[{id:'A',name:'',col:BCOL[0]},{id:'B',name:'',col:BCOL[1]},{id:'C',name:'',col:BCOL[2]}];
-    const rooms=[];
-    for(let r=101;r<=108;r++)rooms.push([r,'A',3,11000]);
-    for(let r=201;r<=208;r++)rooms.push([r,'B',3,11000]);
-    for(let r=301;r<=306;r++)rooms.push([r,'C',2,13500]);
-    const free=[];
-    rooms.forEach(([r,b,n,fee])=>{RB[r]=b;for(let i=0;i<n;i++){const bed=r+'-'+'ABC'[i];BEDS.push(bed);free.push([bed,fee])}});
-    // Leave 10 beds empty, spread over the blocks.
-    const empty=new Set([5,11,20,26,33,40,47,52,55,59]);
-    const beds=free.filter((_,i)=>!empty.has(i));
-    const [ty,tm,td]=fromIdx(TODAY);
-    N.forEach((nm,i)=>{
-      const st=ST[i],[bed,fee]=beds[i];
-      // How long ago they joined: 10 days to about 14 months.
-      let back=10+((i*37)%420);
-      // "Due today" needs the joining day to be today's day of the month.
-      let y,m,d;
-      if(st==='today'){[y,m]=fromIdx(TODAY);m-=1+(i%5);while(m<1){m+=12;y--}d=td}
-      else{[y,m,d]=fromIdx(TODAY-back);d=Math.min(d,29)}
-      // Late students: due date must already have passed this month.
-      if(st.startsWith('late')&&d>=td&&td>1){d=Math.max(1,td-1-(i%Math.max(1,td-1)))}
-      if(st==='late2'&&toIdx(y,m,d)>TODAY-65){[y,m]=fromIdx(TODAY-90)}
-      if(st!=='paid'&&toIdx(y,m,d)>TODAY-32){[y,m]=fromIdx(TODAY-45)}
-      if(!ML[y]){y=2082;m=Math.max(m,1)}
-      const ph='98'+String(41000000+i*7919).padStart(8,'0'),gd='98'+String(51000000+i*6151).padStart(8,'0');
-      const s=make(nm,ph,gd,bed,fee,y,m,d,12,st);
-      s.months=elapsed(s)+[2,5,8,11][i%4]; // 2 to 11 months of stay still left
-      S.push(s);
-    });
-  }
+  // Sample hostel: fillSample() lives in index.html (shared with mockup.html).
 
   function startEmpty(name){S=[];PAST=[];EXP=[];BEDS=[];RB={};BLK=[{id:'A',name:'',col:BCOL[0]}];nextId=1;expId=1;cfg.name=name}
 

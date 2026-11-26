@@ -1491,6 +1491,96 @@ Object.assign(T.ne,{edit:'सच्याउनुहोस्',change:'बद�
  qPayInfo:'विद्यार्थीले तपाईंलाई कसरी तिर्ने',helpPayInfo:'हरेक सम्झना सन्देशको तल लेखिन्छ। नचाहे खाली छोड्नुहोस्।',phPayInfo:'जस्तै: eSewa / Khalti: ९८XXXXXXXX (हाम्रो होस्टल)',
  sumSend:'यो महिनाको सारांश व्हाट्सएपमा पठाउनुहोस्',sumFees:'उठेको शुल्क',sumOther:'अरू आम्दानी',sumOut:'खर्च',sumOwed:'उठाउन बाँकी',sumLate:n=>n+' जना ढिला',sumBeds:'खाली बेड',
  bedsShare:'खाली बेड व्हाट्सएपमा सेयर गर्नुहोस्',bedsHead:h=>h+': बेड खाली छ',bedsNow:'अहिले खाली',bedsSoon:'खाली हुने मिति',bedsAsk:'बेड बुक गर्न सन्देश पठाउनुहोस्।'});
+// Sample hostel: 50 made-up students in 3 blocks (60 beds, 10 empty).
+// Join dates count back from today, so late / due today / paid look right on any day.
+function fillSample(name){
+  const N=['Sita Gurung','Bibek Thapa','Anisha Poudel','Roshan Tamang','Kabita Adhikari','Suman Shrestha','Pooja Karki','Nabin Magar','Rina Rai','Dipesh KC',
+    'Sabina Lama','Prakash Bhandari','Asmita Ghimire','Kiran Basnet','Sarita Khadka','Ramesh Bhattarai','Manisha Sapkota','Aarav Joshi','Srijana Pandey','Bikash Chaudhary',
+    'Puja Maharjan','Sanjay Yadav','Nisha Thapa Magar','Rohit Dahal','Anjali Subedi','Sagar Neupane','Laxmi Bista','Sujan Rana','Bina Tharu','Aashish Koirala',
+    'Sunita Sherpa','Hari Acharya','Rachana Regmi','Milan Pokharel','Smriti Dhakal','Rajan Oli','Kritika Shahi','Niraj Limbu','Sushma Bhusal','Ujjwal Gautam',
+    'Prerana Khatri','Sandesh Lamsal','Gita Malla','Bishal Pun','Aakriti Sharma','Deepak Rawal','Monika Thakuri','Saroj Parajuli','Elina Shakya','Prabin Kunwar'];
+  // 9 paid students out of 10, plus some late, part paid and due today.
+  const ST=['paid','paid','late1','paid','paid','part','paid','paid','late2','paid','paid','today','paid','late1','paid','paid','paid','part','paid','late1',
+    'paid','paid','paid','late2','paid','today','paid','paid','late1','paid','paid','paid','part','paid','paid','late1','paid','paid','paid','paid',
+    'late2','paid','paid','paid','late1','paid','paid','paid','paid','paid'];
+  S=[];PAST=[];EXP=[];BEDS=[];RB={};nextId=1;expId=1;cfg.name=name;
+  BLK=[{id:'A',name:'',col:BCOL[0]},{id:'B',name:'',col:BCOL[1]},{id:'C',name:'',col:BCOL[2]}];
+  const rooms=[];
+  for(let r=101;r<=108;r++)rooms.push([r,'A',3,11000]);
+  for(let r=201;r<=208;r++)rooms.push([r,'B',3,11000]);
+  for(let r=301;r<=306;r++)rooms.push([r,'C',2,13500]);
+  const free=[];
+  rooms.forEach(([r,b,n,fee])=>{RB[r]=b;for(let i=0;i<n;i++){const bed=r+'-'+'ABC'[i];BEDS.push(bed);free.push([bed,fee])}});
+  // Leave 10 beds empty, spread over the blocks.
+  const empty=new Set([5,11,20,26,33,40,47,52,55,59]);
+  const beds=free.filter((_,i)=>!empty.has(i));
+  const [ty,tm,td]=fromIdx(TODAY);
+  N.forEach((nm,i)=>{
+    const st=ST[i],[bed,fee]=beds[i];
+    // How long ago they joined: 10 days to about 14 months.
+    let back=10+((i*37)%420);
+    // "Due today" needs the joining day to be today's day of the month.
+    let y,m,d;
+    if(st==='today'){[y,m]=fromIdx(TODAY);m-=1+(i%5);while(m<1){m+=12;y--}d=td}
+    else{[y,m,d]=fromIdx(TODAY-back);d=Math.min(d,29)}
+    // Late students: due date must already have passed this month.
+    if(st.startsWith('late')&&d>=td&&td>1){d=Math.max(1,td-1-(i%Math.max(1,td-1)))}
+    if(st==='late2'&&toIdx(y,m,d)>TODAY-65){[y,m]=fromIdx(TODAY-90)}
+    if(st!=='paid'&&toIdx(y,m,d)>TODAY-32){[y,m]=fromIdx(TODAY-45)}
+    if(!ML[y]){y=2082;m=Math.max(m,1)}
+    const ph='98'+String(41000000+i*7919).padStart(8,'0'),gd='98'+String(51000000+i*6151).padStart(8,'0');
+    const s=make(nm,ph,gd,bed,fee,y,m,d,12,st);
+    s.months=elapsed(s)+[2,5,8,11][i%4]; // 2 to 11 months of stay still left
+    S.push(s);
+  });
+  sampleExtras();
+}
+// Examples of every money feature (2026-11-26), added on top of the 50 sample students so each one can be checked:
+// extra charges, a discount, a fine, admission, an advance, a corrected payment, a fee change,
+// past students (one settled from the deposit), money in & out for two months, and payment details for reminders.
+function sampleExtras(){
+  S.forEach(s=>{s.dep=5000;bill(s)});
+  const pay=(s,a,h,d=TODAY)=>{s.payN=(s.payN||s.pays.length)+1;s.pays.unshift({id:nid(s),no:s.payN,d,a,h});s.pays.sort((x,y)=>y.d-x.d||y.no-x.no);s.log.push({d,k:'lPaid',a,h})};
+  const charge=(s,k,a,note='',d=TODAY)=>{s.ch.push({id:nid(s),d,a:k==='disc'?-a:a,k,note});s.log.push({d,k:'lCharge',a,n:k})};
+  const paid=S.filter(s=>status(s)==='paid'&&mLeft(s)>4),late=S.filter(s=>status(s)==='late');
+  const[ty,tm]=fromIdx(TODAY),mon=MN.en[tm-1];
+  // 1. Electricity this month, not paid yet -> shows "due today" with Rs 850
+  charge(paid[0],'elec',850,mon+' bill');
+  // 2. Electricity charged and paid the same day
+  charge(paid[1],'elec',600,mon+' bill',TODAY-2);pay(paid[1],600,'cash',TODAY-2);
+  // 3. A late student also gets food / mess and a late fine
+  charge(late[0],'food',3000,'Extra meals');charge(late[0],'fine',500,'Paid late');
+  // 4. Discount -> money paid ahead (advance)
+  charge(paid[2],'disc',1000,'Two brothers in the hostel');
+  // 5. Newest student: admission fee, paid by eSewa
+  const nw=S.slice().sort((a,b)=>b.join-a.join)[0];charge(nw,'adm',2000,'',nw.join);pay(nw,2000,'esewa',Math.min(nw.join,TODAY));
+  // 6. A payment that was typed wrong and then fixed
+  const fx=paid[3];if(fx.pays[0])fx.log.push({d:fx.pays[0].d,k:'lPayEdit',a:fx.pays[0].a+1000,b:fx.pays[0].a});
+  // 7. Paid two months ahead -> due date moves forward
+  pay(paid[4],paid[4].fee*2,'bank',TODAY-1);
+  // 8. Monthly fee goes up from the next due date (months already charged keep the old fee)
+  const fu=paid[5];fu.log.push({d:TODAY-3,k:'lFee',a:fu.fee,b:fu.fee+1000});fu.fee+=1000;
+  S.forEach(recalc);
+  // 9. Past students: one settled from the deposit, one left still owing
+  const gone=(name,ph,room,fee,join,leftOn,owe,dep)=>{
+    const jd=fromIdx(join)[2],s={id:nextId++,name,ph,gd:ph,room,fee,join,jd,months:0,ch:[],seq:0,pays:[],payN:0,log:[{d:join,k:'lJoin'}],sent:false,dep:0,extra:{}};
+    let p=join;for(let g=0;g<60&&p<leftOn;g++){s.ch.push({id:nid(s),d:p,a:fee,k:'fee'});const n=addMonth(p,jd);if(n===p)break;p=n}
+    s.billed=p;s.months=s.stayed=s.ch.length;
+    s.ch.forEach((c,i)=>{const a=i===s.ch.length-1?fee-owe:fee;if(a>0)pay(s,a,['cash','esewa','bank'][i%3],Math.min(c.d+2,leftOn))});
+    if(dep){const used=Math.min(dep,owe);if(used)pay(s,used,'dep',leftOn);s.log.push({d:leftOn,k:'lSettle',a:used,b:dep-used})}
+    s.log.push({d:leftOn,k:'lLeft'});s.leftOn=leftOn;recalc(s);PAST.push(s);
+  };
+  gone('Manoj Tiwari','9841990011','104-C',11000,TODAY-320,TODAY-25,3000,5000);
+  gone('Rekha Bista','9841990022','205-A',11000,TODAY-200,TODAY-12,4000,0);
+  // 10. Money in & out for this month and last month, so the summary has something to show
+  let e=[];const add=(d,type,cat,a,note='')=>{if(d<=TODAY)e.push({id:expId++,d,type,cat,a,note})};
+  [toIdx(ty,tm,1),fromIdx(TODAY-35)].forEach((m0,k)=>{const st=typeof m0==='number'?m0:toIdx(m0[0],m0[1],1);
+    add(st+1,'out','groc',18500,'Rice, dal, oil');add(st+3,'out','veg',6200);add(st+4,'out','milk',4800);add(st+5,'out','gas',5700,'3 cylinders');
+    add(st+6,'out','elec',9400);add(st+7,'out','net',1500);add(st+8,'out','salary',22000,'Cook');add(st+9,'out','repair',2500,'Tap in 203');
+    add(st+2,'in','laundry',1800);add(st+8,'in','sell',1200,'Old newspapers')});
+  EXP=e;
+  cfg.payInfo=`eSewa / Khalti: 9800000000 (${cfg.name})`;
+}
 function render(){
   document.documentElement.lang=lang;
   document.getElementById('note').textContent=t('note');
@@ -1814,6 +1904,7 @@ html.in-frame #dz{display:none}
   <div id="dz-box" hidden>
     <h3>Design mockup</h3>
     <p>Sample data only. Nothing is saved to the real app. Pick options, then press "Copy my choices" and send them to Claude.</p>
+    <div class="g"><b>Sample data</b><div class="seg"><button type="button" id="dz-sample">Fill with sample data</button><button type="button" id="dz-empty">Empty</button></div><p style="margin-top:4px">50 students with extra charges, a discount, an advance, past students and money in &amp; out.</p></div>
     <div id="dz-groups"></div>
     <div class="foot"><button type="button" id="dz-reset">Reset</button><button type="button" id="dz-copy">Copy my choices</button></div>
     <textarea id="dz-out" readonly hidden></textarea>
@@ -1866,6 +1957,8 @@ html.in-frame #dz{display:none}
     const b=e.target.closest('button');if(!b)return;
     if(b.id==='dz-open'){const x=document.getElementById('dz-box');x.hidden=!x.hidden;return}
     if(b.id==='dz-reset'){st=Object.assign({},DEF);apply();return}
+    if(b.id==='dz-sample'){fillSample('Hamro Hostel');bookBed=null;view='list';render();window.scrollTo(0,0);return}
+    if(b.id==='dz-empty'){S=[];PAST=[];EXP=[];BEDS=[];RB={};BLK=[{id:'A',name:'',col:BCOL[0]}];cfg.payInfo='';view='list';render();return}
     if(b.id==='dz-copy'){
       const txt='Hostel Khata design choices:\n'+G.filter(g=>g.k!=='view').map(g=>'- '+g.t+': '+g.o.find(o=>o[0]===st[g.k])[1]+(g.k==='acc'?' ('+st.acc+')':'')).join('\n');
       const o=document.getElementById('dz-out');o.hidden=false;o.value=txt;o.select();
