@@ -1,5 +1,6 @@
 // Hostel Khata for Windows: Electron main process.
 // Data lives in %APPDATA%\Hostel Khata\data.json, with one dated copy per day in backups\.
+// Optional second copy in a folder the owner picks (see mirrorSave).
 const { app, BrowserWindow, ipcMain, dialog, shell, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -55,6 +56,38 @@ function load() {
   return null;
 }
 
+// Second copy (2026-11-26): the owner can pick a folder on a USB drive or a Google Drive / OneDrive
+// folder. Every save also writes the data there, plus one dated copy per day, so a dead or stolen
+// laptop does not lose everything. If the folder is missing (USB unplugged), the normal save still works.
+const prefsFile = () => path.join(dataDir(), 'prefs.json');
+function readPrefs() { try { return JSON.parse(fs.readFileSync(prefsFile(), 'utf8')) || {}; } catch { return {}; } }
+function writePrefs(p) { fs.mkdirSync(dataDir(), { recursive: true }); writeAtomic(prefsFile(), JSON.stringify(p)); }
+let mirrorState = { ok: null, at: null, error: null };
+function mirrorSave(text) {
+  const dir = readPrefs().mirror;
+  if (!dir) { mirrorState = { ok: null, at: null, error: null }; return; }
+  try {
+    if (!fs.existsSync(dir)) throw new Error('Folder not found: ' + dir);
+    writeAtomic(path.join(dir, 'Hostel Khata data.json'), text);
+    const daily = path.join(dir, 'Hostel Khata daily copies');
+    fs.mkdirSync(daily, { recursive: true });
+    const dest = path.join(daily, `data-${today()}.json`);
+    writeAtomic(dest, text);
+    const old = fs.readdirSync(daily).filter(f => /^data-\d{4}-\d\d-\d\d\.json$/.test(f)).sort();
+    old.slice(0, Math.max(0, old.length - KEEP_DAYS)).forEach(f => fs.unlinkSync(path.join(daily, f)));
+    mirrorState = { ok: true, at: new Date().toISOString(), error: null };
+  } catch (err) { mirrorState = { ok: false, at: mirrorState.at, error: String(err && err.message || err) }; }
+}
+ipcMain.on('hk:mirror', e => { e.returnValue = { dir: readPrefs().mirror || null, ...mirrorState }; });
+ipcMain.handle('hk:mirror-pick', async () => {
+  const r = await dialog.showOpenDialog(win, { title: 'Choose a folder for the second copy (USB drive or Google Drive)', properties: ['openDirectory', 'createDirectory'] });
+  if (r.canceled || !r.filePaths[0]) return null;
+  const p = readPrefs(); p.mirror = r.filePaths[0]; writePrefs(p);
+  if (fs.existsSync(dataFile())) mirrorSave(fs.readFileSync(dataFile(), 'utf8'));
+  return { dir: p.mirror, ...mirrorState };
+});
+ipcMain.on('hk:mirror-clear', e => { const p = readPrefs(); delete p.mirror; writePrefs(p); mirrorState = { ok: null, at: null, error: null }; e.returnValue = true; });
+
 let copiedToday = null;
 ipcMain.on('hk:load', e => { e.returnValue = load(); });
 ipcMain.on('hk:save', (e, text) => {
@@ -63,7 +96,8 @@ ipcMain.on('hk:save', (e, text) => {
     fs.mkdirSync(dataDir(), { recursive: true });
     if (copiedToday !== today()) { dailyCopy(); copiedToday = today(); }
     writeAtomic(dataFile(), text);
-    e.returnValue = { ok: true };
+    mirrorSave(text);
+    e.returnValue = { ok: true, mirror: mirrorState };
   } catch (err) { e.returnValue = { ok: false, error: String(err && err.message || err) }; }
 });
 ipcMain.on('hk:dir', e => { e.returnValue = dataDir(); });

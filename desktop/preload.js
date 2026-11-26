@@ -6,7 +6,11 @@ contextBridge.exposeInMainWorld('hkNative', {
   save: text => {
     const r = ipcRenderer.sendSync('hk:save', text);
     if (!r || !r.ok) throw new Error(r && r.error || 'save failed');
+    return r.mirror || null;
   },
+  mirror: () => ipcRenderer.sendSync('hk:mirror'),
+  pickMirror: () => ipcRenderer.invoke('hk:mirror-pick'),
+  clearMirror: () => ipcRenderer.sendSync('hk:mirror-clear'),
   dataDir: () => ipcRenderer.sendSync('hk:dir'),
   keepCopy: tag => ipcRenderer.sendSync('hk:keep', String(tag)),
   exportBackup: (name, text) => ipcRenderer.invoke('hk:export', name, text),

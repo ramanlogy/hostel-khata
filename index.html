@@ -595,6 +595,7 @@ button.xdel:hover{background:var(--c-late);color:var(--late)}
 <dialog id="pay"></dialog>
 <dialog id="ask"></dialog>
 <dialog id="rd"></dialog>
+<dialog id="ed"></dialog>
 <div id="toast" hidden></div>
 
 <script>
@@ -691,6 +692,7 @@ let cfg={name:'Hamro Hostel',billing:'join',billDay:1,soonDays:3,endSoon:60,defa
  fields:{gd:true,college:false,address:false},custom:[],
  tpl:{en:{soon:'Namaste {name}, your hostel fee of {amount} is due on {date}. Thank you, {hostel}.',today:'Namaste {name}, your hostel fee of {amount} is due today. Thank you, {hostel}.',late:'Namaste {name}, your hostel fee of {amount} has been left to pay since {date}. Please pay soon. Thank you, {hostel}.'},
  ne:{soon:'नमस्ते {name}, तपाईंको होस्टल शुल्क {amount} {date} मा तिर्नुपर्ने छ। धन्यवाद, {hostel}।',today:'नमस्ते {name}, तपाईंको होस्टल शुल्क {amount} आज तिर्नुपर्ने छ। धन्यवाद, {hostel}।',late:'नमस्ते {name}, तपाईंको होस्टल शुल्क {amount} {date} देखि बाँकी छ। कृपया चाँडै तिरिदिनुहोला। धन्यवाद, {hostel}।'}}};
+cfg.payInfo='';
 let EXP=[],expId=1;
 const CATS={out:['groc','veg','milk','gas','elec','water','net','salary','repair','other'],in:['sell','laundry','oin']};
 function jdOf(s){return cfg.billing==='fixed'?cfg.billDay:s.jd}
@@ -703,6 +705,8 @@ let calY=fromIdx(TODAY)[0],calM=fromIdx(TODAY)[1],calSel=TODAY,roomF='all',block
 
 function status(s){
   if(s.left>0)return s.lateSince<TODAY?'late':'today';
+  // No more fee is coming once the next due date is at or after the end of the stay.
+  if(s.leftOn==null&&s.nextDue>=endIdx(s))return'paid';
   return s.nextDue-TODAY<=cfg.soonDays?'soon':'paid';
 }
 const ORDER={late:0,today:1,soon:2,paid:3};
@@ -733,6 +737,53 @@ function dueTag(s){
 }
 const dueCell=s=>`${dueTag(s)}<span class="sub">${fmtS(status(s)==='late'?s.lateSince:status(s)==='today'?TODAY:s.nextDue)}</span>`;
 const queue=()=>S.filter(s=>status(s)!=='paid').sort((a,b)=>ORDER[status(a)]-ORDER[status(b)]);
+
+// ---- Money ledger (2026-11-26) ----
+// Every charge (monthly fee, electricity, fine, discount...) and every payment is its own line.
+// What a student owes is always worked out again from those lines by recalc(), never typed in by hand.
+//   s.ch    charges  {id,d,a,k,note}  k: fee|elec|food|adm|fine|other|disc|adj  (disc is a minus amount)
+//   s.pays  payments {id,no,d,a,h}    newest first
+//   s.billed  the next date a monthly fee will be added
+// s.left, s.credit, s.lateSince and s.nextDue are results of recalc(), kept only so the screens can read them.
+const CH_KINDS=['elec','food','adm','fine','other','disc'];
+const nid=s=>(s.seq=(s.seq||0)+1);
+function ledgerize(s){
+  if(Array.isArray(s.ch))return;
+  // Older saves kept only a running balance. Rebuild the fee lines it stands for, then add one
+  // "balance from before" line if needed, so the amount owed stays exactly the same.
+  s.ch=[];s.seq=0;
+  const stop=s.nextDue!=null?s.nextDue:TODAY+1;let p=s.join;
+  for(let g=0;g<480&&p<stop;g++){s.ch.push({id:nid(s),d:p,a:s.fee,k:'fee'});const n=addMonth(p,jdOf(s));if(n===p)break;p=n}
+  s.billed=stop;
+  s.pays.slice().reverse().forEach((x,i)=>{x.id=nid(s);x.no=i+1});s.payN=s.pays.length;
+  const want=(s.left||0)-(s.credit||0),have=s.ch.reduce((a,c)=>a+c.a,0)-s.pays.reduce((a,x)=>a+x.a,0);
+  if(want!==have)s.ch.push({id:nid(s),d:Math.min(TODAY,stop),a:want-have,k:'adj'});
+}
+function recalc(s){
+  ledgerize(s);
+  const pos=s.ch.filter(c=>c.a>0).sort((a,b)=>a.d-b.d||a.id-b.id);
+  const minus=s.ch.filter(c=>c.a<0).reduce((a,c)=>a-c.a,0);
+  const paid=s.pays.reduce((a,x)=>a+x.a,0)+minus,owe=pos.reduce((a,c)=>a+c.a,0),bal=owe-paid;
+  // Oldest charge not yet covered = the day the student became late.
+  s.lateSince=null;
+  if(bal>0){let cov=paid;for(const c of pos){if(cov>=c.a){cov-=c.a;continue}s.lateSince=c.d;break}}
+  s.left=Math.max(bal,0);
+  // Money paid ahead covers the coming months. Show the first month it does not fully cover.
+  let cr=Math.max(-bal,0),nd=s.billed;
+  if(s.fee>0)for(let g=0;g<480&&cr>=s.fee&&nd<endIdx(s);g++){const n=addMonth(nd,jdOf(s));if(n===nd)break;cr-=s.fee;nd=n}
+  s.credit=cr;s.nextDue=nd;
+}
+// Add the monthly fee for every due date that has come, until the stay ends.
+function bill(s){
+  ledgerize(s);
+  if(s.leftOn==null)for(let g=0;g<480&&s.billed<=TODAY&&s.billed<endIdx(s);g++){
+    s.ch.push({id:nid(s),d:s.billed,a:s.fee,k:'fee'});
+    const n=addMonth(s.billed,jdOf(s));if(n===s.billed)break;s.billed=n;
+  }
+  recalc(s);
+}
+const chName=c=>t('ch_'+c.k);
+const howName=h=>h==='esewa'?'eSewa':h==='khalti'?'Khalti':t(h);
 
 let view='list',filter='topay',q='',cur=null,wa={id:null,step:'ready'},payState=null,stay=12,stayCustom=false;
 const app=document.getElementById('app');
@@ -788,8 +839,10 @@ function renderList(){
 function msgFor(s){
   const st=status(s),k=st==='late'?'late':st==='today'?'today':'soon';
   const vals={name:s.name,amount:rs(s.left||Math.max(s.fee-s.credit,0)),date:fmt(st==='late'?s.lateSince:st==='today'?TODAY:s.nextDue),hostel:cfg.name};
-  return fillTpl(cfg.tpl[lang][k],vals);
+  return withPayInfo(fillTpl(cfg.tpl[lang][k],vals));
 }
+// The owner's own payment details (eSewa / Khalti / bank number) go under every reminder.
+const withPayInfo=m=>(cfg.payInfo||'').trim()?m+'\n\n'+cfg.payInfo.trim():m;
 function renderMsgs(){
   const all=queue(),pend=all.filter(s=>!s.sent);
   if(!all.find(s=>s.id===wa.id)||(all.find(s=>s.id===wa.id).sent&&pend.length)){wa.id=pend[0]?.id??null;wa.step='ready'}
@@ -802,16 +855,21 @@ function renderMsgs(){
 function renderOne(){
   const s=byId(cur);if(!s){view='list';return render()}
   const past=!!s.leftOn,st=status(s),ml=mLeft(s);
-  const lines=s.pays.length?s.pays.map((p,i)=>`<div class="line"><span><b>${rs(p.a)}</b> &nbsp;${t(p.h)}</span><span>${fmt(p.d)}<button type="button" class="mini" data-act="receipt" data-id="${s.id}" data-v="${i}">${t('receipt')}</button></span></div>`).join(''):`<span class="sub">${t('noPay')}</span>`;
-  const logs=s.log.slice().sort((a,b)=>b.d-a.d).map(l=>`<div class="line"><span>${l.k==='lPaid'?t('lPaid',rs(l.a),t(l.h)):l.k==='lSettle'?t('lSettle',rs(l.a),rs(l.b)):t(l.k)}</span><span>${fmt(l.d)}</span></div>`).join('');
+  ledgerize(s);
+  const lines=s.pays.length?s.pays.map((p,i)=>`<div class="line"><span><b>${rs(p.a)}</b> &nbsp;${howName(p.h)}</span><span>${fmt(p.d)}<button type="button" class="mini" data-act="receipt" data-id="${s.id}" data-v="${i}">${t('receipt')}</button><button type="button" class="mini" data-act="pedit" data-id="${s.id}" data-v="${p.id}" aria-label="${t('edit')} ${rs(p.a)}">${t('edit')}</button></span></div>`).join(''):`<span class="sub">${t('noPay')}</span>`;
+  const chs=s.ch.slice().sort((a,b)=>b.d-a.d||b.id-a.id);
+  const chLines=chs.map(c=>`<div class="line"><span><b class="${c.a<0?'inc':''}">${c.a<0?'− ':''}${rs(Math.abs(c.a))}</b> &nbsp;${esc(chName(c))}${c.k==='fee'?` · ${MN[lang][fromIdx(c.d)[1]-1]}`:''}${c.note?` <span class="sub" style="display:inline">· ${esc(c.note)}</span>`:''}</span><span>${fmt(c.d)}<button type="button" class="mini" data-act="cedit" data-id="${s.id}" data-v="${c.id}" aria-label="${t('edit')} ${esc(chName(c))}">${t('edit')}</button></span></div>`).join('');
+  const chargedSum=s.ch.reduce((x,c)=>x+c.a,0);
+  const logs=s.log.slice().sort((a,b)=>b.d-a.d).map(l=>`<div class="line"><span>${logText(l)}</span><span>${fmt(l.d)}</span></div>`).join('');
   const payBtn=`<button type="button" class="btn pri" data-act="pay" data-id="${s.id}">${I.cash}${t('got')}</button>`;
-  const acts=past?(s.left?payBtn:''):payBtn+(st!=='paid'&&cfg.mods.msgs?`<button type="button" class="btn wa" data-act="wa" data-id="${s.id}">${I.msg}WhatsApp</button>`:'');
+  const chBtn=`<button type="button" class="btn sec" data-act="chadd" data-id="${s.id}">${I.plus}${t('addCh')}</button>`;
+  const acts=past?(s.left?payBtn:'')+chBtn:payBtn+chBtn+(st!=='paid'&&cfg.mods.msgs?`<button type="button" class="btn wa" data-act="wa" data-id="${s.id}">${I.msg}WhatsApp</button>`:'');
   const paidSum=s.pays.reduce((x,p)=>x+p.a,0);
   const row=(lab,val,cls='',small='')=>`<div><span>${lab}</span><b class="${cls}">${val}${small?`<small>${small}</small>`:''}</b></div>`;
   const ov=[
     row(t('joined'),fmt(s.join)),
     past?row(t('leftOn'),fmt(s.leftOn),'',t('stayed',s.stayed).replace(/\d+/g,num)):row(t('ends'),fmt(endIdx(s)),isEnding(s)?'':'',stayText(s)),
-    row(t('cFee'),rs(s.fee)),
+    row(t('cFee'),rs(s.fee)+(past?'':`<button type="button" class="mini" data-act="feeedit" data-id="${s.id}">${t('change')}</button>`)),
     row(t('totalPaid'),rs(paidSum),'is-ok',s.pays.length?t('payTimes',s.pays.length).replace(/\d+/g,num):''),
     row(t('cLeft'),s.left?rs(s.left):t('none'),s.left?(st==='late'||past?'is-late':''):''),
     past?'':row(t('cNext'),fmt(s.left?s.lateSince:s.nextDue),'',dueTag(s))
@@ -826,6 +884,7 @@ function renderOne(){
   <div class="acts">${acts}</div></div>
   <div class="ov">${ov}</div></div>
   <div class="card" style="gap:0"><h2 style="margin-bottom:8px">${t('payments')}</h2>${lines}</div>
+  <details class="card more"><summary>${t('chargesH',num(chs.length))}</summary><span class="sub" style="margin-bottom:8px">${t('chargesSum',rs(chargedSum),rs(paidSum),chargedSum>paidSum?rs(chargedSum-paidSum):chargedSum<paidSum?t('adv')+' '+rs(paidSum-chargedSum):t('none'))}</span>${chLines||`<span class="sub">${t('noCh')}</span>`}</details>
   <details class="card more"><summary>${t('moreD')}</summary>${more?`<div class="ov" style="margin-bottom:14px">${more}</div>`:''}<h2 style="margin:4px 0 8px;font-size:16px">${t('history')}</h2>${logs}</details>
   <div class="endrow">${past?'':`<button type="button" class="btn sec" data-act="finish" data-id="${s.id}">${I.flag}${t('finish')}</button>`}<button type="button" class="btn del" data-act="delete" data-id="${s.id}">${I.trash}${t('del')}</button></div>`;
 }
@@ -921,6 +980,9 @@ function bedList(){
   return BEDS.map(id=>{const s=S.find(x=>x.room===id);if(!s)return{id,k:'empty'};const e=endIdx(s);return{id,s,e,k:e-TODAY<=cfg.endSoon?'ending':'occ'}});
 }
 const freeBeds=()=>bedList().filter(b=>b.k==='empty').map(b=>b.id);
+// Ready-made "beds available" post for WhatsApp groups and status.
+const bedsText=(now,soon)=>[t('bedsHead',cfg.name),now.length?`${t('bedsNow')}: ${num(now.length)}`:'',
+  soon.length?`${t('bedsSoon')}: ${soon.map(b=>fmtS(b.e)).filter((x,i,a)=>a.indexOf(x)===i).slice(0,5).join(', ')}`:'',t('bedsAsk')].filter(Boolean).join('\n');
 function renderRooms(){
   if(blockF!=='all'&&!BLK.some(b=>b.id===blockF))blockF='all';
   const every=bedList(),bOf=b=>blockOf(b.id.split('-')[0]);
@@ -948,7 +1010,8 @@ function renderRooms(){
     return cards?`<p class="floor" style="--bc:${B.col}"><i class="bdot"></i>${esc(bname(B))}${/\d/.test(fl)?` · ${t('floor',num(fl))}`:''}</p><div class="roomgrid">${cards}</div>`:'';
   }).join('');
   const freeNow=all.filter(b=>b.k==='empty'),freeSoon=all.filter(b=>b.k==='ending').sort((a,b)=>a.e-b.e);
-  const freeBar=`<div class="freebar"><h3><b>${num(freeNow.length)}</b> ${t('mapFreeNow')}</h3>${freeNow.length?`<div class="freelist">${freeNow.map(b=>`<button type="button" class="fchip" data-act="book" data-v="${b.id}">${num(b.id)}</button>`).join('')}</div>`:`<span class="sub">${t('mapNoFree')}</span>`}${freeSoon.length?`<span class="sub">${t('mapSoon')}</span><div class="freelist">${freeSoon.map(b=>`<button type="button" class="fchip soon" data-act="open" data-id="${b.s.id}">${num(b.id)} · ${fmtS(b.e)}</button>`).join('')}</div>`:''}</div>`;
+  const shareBeds=freeNow.length||freeSoon.length?`<a class="btn wa" style="justify-self:start" href="${waLink(bedsText(freeNow,freeSoon),'')}" target="_blank" rel="noopener">${I.msg}${t('bedsShare')}</a>`:'';
+  const freeBar=`<div class="freebar"><h3><b>${num(freeNow.length)}</b> ${t('mapFreeNow')}</h3>${freeNow.length?`<div class="freelist">${freeNow.map(b=>`<button type="button" class="fchip" data-act="book" data-v="${b.id}">${num(b.id)}</button>`).join('')}</div>`:`<span class="sub">${t('mapNoFree')}</span>`}${freeSoon.length?`<span class="sub">${t('mapSoon')}</span><div class="freelist">${freeSoon.map(b=>`<button type="button" class="fchip soon" data-act="open" data-id="${b.s.id}">${num(b.id)} · ${fmtS(b.e)}</button>`).join('')}</div>`:''}${shareBeds}</div>`;
   const sw=`<div class="rviewsw" role="group">${editBtn}<button type="button" data-act="rview" data-v="map" aria-pressed="${roomView==='map'}">${t('mapView')}</button><button type="button" data-act="rview" data-v="list" aria-pressed="${roomView==='list'}">${t('mapList')}</button></div>`;
   const bx=b=>{const L=b.id.split('-')[1];
     if(b.k==='empty')return`<button type="button" class="bx e" data-act="book" data-v="${b.id}" title="${t('book')} ${b.id}"><b>${L}</b><span>${t('emptyB')}</span></button>`;
@@ -1117,7 +1180,10 @@ function doFinish(s){
   const i=S.indexOf(s);
   const snapF=JSON.stringify(s);
   S.splice(i,1);s.leftOn=TODAY;s.stayed=elapsed(s);
-  if(cfg.mods.deposit&&s.dep){const used=Math.min(s.dep,s.left),back=s.dep-used;s.left-=used;if(!s.left)s.lateSince=null;s.log.push({d:TODAY,k:'lSettle',a:used,b:back});s.dep=0}
+  if(cfg.mods.deposit&&s.dep){const used=Math.min(s.dep,s.left),back=s.dep-used;
+    // The part of the deposit kept for unpaid fees is recorded as a payment, so it shows in the money lists.
+    if(used>0){s.payN=(s.payN||s.pays.length)+1;s.pays.unshift({id:nid(s),no:s.payN,d:TODAY,a:used,h:'dep'})}
+    s.log.push({d:TODAY,k:'lSettle',a:used,b:back});s.dep=0;recalc(s)}
   s.log.push({d:TODAY,k:'lLeft'});PAST.unshift(s);
   if(view==='one')view='people';
   render();
@@ -1133,21 +1199,22 @@ function doDelete(s){
 S.forEach(s=>{s.dep=5000});
 I.gear='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"/></svg>';
 function applyBilling(){
-  S.forEach(s=>{const jd=jdOf(s);let p=s.join;for(;;){const n=addMonth(p,jd);if(n===p||n>TODAY){s.nextDue=n;break}p=n}});
+  // The fee for this month is already added. From now on, monthly fees follow the new rule.
+  S.forEach(s=>{ledgerize(s);const jd=jdOf(s);let p=s.join;for(;;){const n=addMonth(p,jd);if(n===p||n>TODAY){s.billed=n;break}p=n}recalc(s)});
 }
 function settleHtml(s){
   if(!(cfg.mods.deposit&&s.dep))return s.left?`<p class="owe">${t('askOwe',rs(s.left))}</p>`:'';
   const net=s.dep-s.left;
   return`<div class="settle"><div><span>${t('cLeft')}</span><span>${rs(s.left)}</span></div><div><span>${t('deposit')}</span><span>${rs(s.dep)}</span></div><div class="res"><span>${net>0?t('giveBack',rs(net)):net<0?t('stillOwes',rs(-net)):t('settleZero')}</span></div></div>`;
 }
-function openReceipt(s,i){
+function openReceipt(s,i,justPaid=false){
   const p=s.pays[i];askState=null;
-  askDlg.innerHTML=`<div class="dlg"><h2>${esc(cfg.name)}</h2><div class="rc">
-   <div><span>${t('rcNo')}</span><b>R-${num(s.id*100+s.pays.length-i)}</b></div>
+  askDlg.innerHTML=`<div class="dlg">${justPaid?`<p class="ask" style="margin:0">${t('rcAfter')}</p>`:''}<h2>${esc(cfg.name)}</h2><div class="rc">
+   <div><span>${t('rcNo')}</span><b>R-${num(rcNum(s,p))}</b></div>
    <div><span>${t('cStudent')}</span><b>${esc(s.name)}</b></div>
    <div><span>${t('room')}</span><b>${num(esc(s.room))}</b></div>
    <div><span>${t('rcDate')}</span><b>${fmt(p.d)}</b></div>
-   <div><span>${t('rcHow')}</span><b>${t(p.h)}</b></div>
+   <div><span>${t('rcHow')}</span><b>${howName(p.h)}</b></div>
    <div><span>${t('rcAmt')}</span><b class="big2">${rs(p.a)}</b></div>
    <div><span>${t('rcLeft')}</span><b>${rs(s.left)}</b></div></div>
    <div class="row2">${cfg.mods.msgs?`<a class="btn wa big" href="${waLink(rcText(s,i),s.ph)}" target="_blank" rel="noopener" data-act="rcsend">${I.msg}${t('rcSend')}</a>`:''}<button type="button" class="btn sec big" data-act="askno" autofocus>${t('close')}</button></div></div>`;
@@ -1178,6 +1245,16 @@ function drawScreen(){
   res.textContent=rs(calcVal(calc));
 }
 const catName=c=>t('cat_'+c);
+// Month summary for the owner to send to themself (or a partner) on WhatsApp.
+function sumText(y,m,feeIn,otherIn,out,cats){
+  const now=y===fromIdx(TODAY)[0]&&m===fromIdx(TODAY)[1],owed=S.reduce((a,s)=>a+s.left,0),late=S.filter(s=>status(s)==='late').length;
+  return[`${cfg.name} · ${MN[lang][m-1]} ${num(y)}${now?' ('+t('soFar')+')':''}`,'',
+   `${t('sumFees')}: ${rs(feeIn)}`,otherIn?`${t('sumOther')}: ${rs(otherIn)}`:'',`${t('sumOut')}: ${rs(out)}`,
+   ...cats.slice(0,3).map(([c,a])=>`  · ${catName(c)}: ${rs(a)}`),
+   `${t('remain')}: ${feeIn+otherIn-out<0?'− ':''}${rs(Math.abs(feeIn+otherIn-out))}`,'',
+   `${t('sumOwed')}: ${rs(owed)}${late?` (${t('sumLate',num(late))})`:''}`,
+   `${t('sumBeds')}: ${num(freeBeds().length)}`].filter(x=>x!=='').join('\n').replace(/\n\n\n+/g,'\n\n');
+}
 function renderExpenses(){
   const mStart=toIdx(monY,monM,1),mLen=ML[monY][monM-1],inMon=d=>d>=mStart&&d<mStart+mLen;
   const ents=EXP.filter(e=>inMon(e.d)),fees=allPays().filter(x=>inMon(x.p.d));
@@ -1214,6 +1291,7 @@ function renderExpenses(){
    <div class="row2"><button type="button" class="btn pri big" id="m-save" data-act="msave"></button><button type="button" class="btn sec big" data-act="mclose">${t('cancel')}</button></div></div>`;
   app.innerHTML=`<div class="xwrap"><div class="monbar"><button type="button" class="btn sec" style="background:var(--panel)" data-act="mmon" data-v="-1" aria-label="${t('prevM')}">${I.back}</button><b>${MN[lang][monM-1]} ${num(monY)}</b><button type="button" class="btn sec" style="background:var(--panel)" data-act="mmon" data-v="1" aria-label="${t('nextM')}" ${atNow?'disabled':''}>${I.next}</button></div>
   <div class="card xsum"><div><span class="lab">${t('mIn')}</span><b class="inc">${rs(inn)}</b></div><div><span class="lab">${t('mOut')}</span><b class="outc">${rs(out)}</b></div><div><span class="lab">${t('remain')}</span><b class="${left<0?'outc':''}">${left<0?'− ':''}${rs(Math.abs(left))}</b></div></div>
+  <div><a class="btn wa" href="${waLink(sumText(monY,monM,feeIn,otherIn,out,cats),'')}" target="_blank" rel="noopener" data-act="sumsend">${I.msg}${t('sumSend')}</a></div>
   ${mForm?form:`<div class="xbtns"><button type="button" class="btn big xout" data-act="mnew" data-v="out">${t('mOutBtn')}</button><button type="button" class="btn big xin" data-act="mnew" data-v="in">${t('mInBtn')}</button></div>`}
   <div class="card" style="gap:0"><div class="seg xtabs" role="tablist"><button type="button" role="tab" data-act="mtab" data-v="days" aria-pressed="${mTab==='days'}" aria-selected="${mTab==='days'}">${t('mDays')}</button><button type="button" role="tab" data-act="mtab" data-v="cats" aria-pressed="${mTab==='cats'}" aria-selected="${mTab==='cats'}">${t('mByCat')}</button></div>
   ${mTab==='days'?(dayHtml||`<div class="empty">${t('mNone')}</div>`):catHtml}</div></div>`;
@@ -1241,7 +1319,7 @@ const tokLabel=k=>t({name:'tokName',amount:'tokAmt',date:'tokDate',hostel:'tokHo
 const toFriendly=s=>s.replace(/\{(name|amount|date|hostel)\}/g,(m,k)=>`[${tokLabel(k)}]`);
 function fromFriendly(s){TOKS.forEach(k=>{s=s.split(`[${tokLabel(k)}]`).join(`{${k}}`)});return s}
 const fillTpl=(s,v)=>s.replace(/\{(\w+)\}/g,(m,x)=>v[x]??m);
-function previewText(){return fillTpl(cfg.tpl[lang][msgKey],{name:'Sita Gurung',amount:rs(cfg.defaultFee),date:fmt(msgKey==='late'?TODAY-5:msgKey==='today'?TODAY:TODAY+3),hostel:cfg.name})}
+function previewText(){return withPayInfo(fillTpl(cfg.tpl[lang][msgKey],{name:'Sita Gurung',amount:rs(cfg.defaultFee),date:fmt(msgKey==='late'?TODAY-5:msgKey==='today'?TODAY:TODAY+3),hostel:cfg.name}))}
 function renderSettings(){
   const m=cfg.mods;
   const sel=(key,val,opts,extra='')=>`<select data-set="${key}" aria-label="${key}" ${extra}>${opts.map(([v,l])=>`<option value="${esc(v)}" ${String(v)===String(val)?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
@@ -1280,7 +1358,8 @@ function renderSettings(){
    ['show',I.grid,'c-all',t('secShow'),onNames||t('off'),
      `<p class="hint" style="padding-bottom:8px">${t('showHint')}</p>`+tgl('mod','msgs',m.msgs,t('mMsgs'))+tgl('mod','cal',m.cal,t('calendar'))+tgl('mod','rooms',m.rooms,t('rooms'))+tgl('mod','expenses',m.expenses,t('expenses'))+tgl('mod','deposit',m.deposit,t('mDep'))],
    ['pay',I.cash,'c-ok',t('secPay'),payNames,
-     tgl('pmt','cash',cfg.pay.cash,t('cash'))+tgl('pmt','esewa',cfg.pay.esewa,'eSewa')+tgl('pmt','khalti',cfg.pay.khalti,'Khalti')+tgl('pmt','bank',cfg.pay.bank,t('bank'))],
+     tgl('pmt','cash',cfg.pay.cash,t('cash'))+tgl('pmt','esewa',cfg.pay.esewa,'eSewa')+tgl('pmt','khalti',cfg.pay.khalti,'Khalti')+tgl('pmt','bank',cfg.pay.bank,t('bank'))+
+     `<div class="editor"><label class="sq" for="s-payinfo">${t('qPayInfo')}</label><span class="sub">${t('helpPayInfo')}</span><textarea id="s-payinfo" rows="3" placeholder="${t('phPayInfo')}">${esc(cfg.payInfo||'')}</textarea></div>`],
    ['form',I.form,'c-soon',t('secForm'),dg(t('sumForm',formN)),
      `<p class="hint" style="padding-bottom:8px">${t('formHint')}</p>`+tgl('fld','gd',cfg.fields.gd,t('fGuard'))+tgl('fld','college',cfg.fields.college,t('fCollege'))+tgl('fld','address',cfg.fields.address,t('fAddress'))+
      (cfg.custom.length?`<div class="bedbox">${cfg.custom.map((c,i)=>`<span class="bchip c-all">${esc(c)}<button type="button" data-act="cfdel" data-v="${i}" aria-label="${t('del')} ${esc(c)}">×</button></span>`).join('')}</div>`:'')+
@@ -1343,7 +1422,7 @@ function renderPays(){
   const rows=list.map(({s,p,i})=>`<div class="row pay">
    <button type="button" class="who" data-act="open" data-id="${s.id}"><span class="face paid">${esc(initials(s.name))}</span><span style="min-width:0"><span class="name">${esc(s.name)}</span><span class="sub">${t('room')} ${num(esc(s.room))}</span></span></button>
    <div class="cell" data-l="${t('rcAmt')}"><span class="left">${rs(p.a)}</span></div>
-   <div class="cell" data-l="${t('rcHow')}">${t(p.h)}</div>
+   <div class="cell" data-l="${t('rcHow')}">${howName(p.h)}</div>
    <div class="cell" data-l="${t('rcDate')}">${fmt(p.d)}</div>
    <div class="acts"><button type="button" class="mini" data-act="receipt" data-id="${s.id}" data-v="${i}">${t('receipt')}</button></div></div>`).join('');
   app.innerHTML=`<div><button type="button" class="btn sec" style="background:var(--panel)" data-act="go" data-v="list">${I.back}${t('back')}</button></div>
@@ -1353,7 +1432,7 @@ function renderPays(){
 }
 // Opens WhatsApp to the student's own number (10-digit Nepali numbers get the 977 country code).
 const waLink=(text,ph)=>{const d=String(ph||'').replace(/\D/g,''),to=d.length===10?'977'+d:d;return`https://wa.me/${to}?text=${encodeURIComponent(text)}`};
-function rcText(s,i){const p=s.pays[i];return[cfg.name,`${t('rcNo')} R-${num(s.id*100+s.pays.length-i)}`,`${t('cStudent')}: ${s.name}`,`${t('rcDate')}: ${fmt(p.d)}`,`${t('rcAmt')}: ${rs(p.a)} (${t(p.h)})`,`${t('rcLeft')}: ${rs(s.left)}`].join('\n')}
+function rcText(s,i){const p=s.pays[i];return[cfg.name,`${t('rcNo')} R-${num(rcNum(s,p))}`,`${t('cStudent')}: ${s.name}`,`${t('rcDate')}: ${fmt(p.d)}`,`${t('rcAmt')}: ${rs(p.a)} (${howName(p.h)})`,`${t('rcLeft')}: ${rs(s.left)}`].join('\n')}
 // Ledger: one list of who joined, who paid and who left, month by month (newest first)
 I.book='<svg viewBox="0 0 24 24"><path d="M5 4.5h11.5a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2zM5 18a2 2 0 0 1 2-2h11.5M9 8.5h6M9 12h4"/></svg>';
 let lgY=fromIdx(TODAY)[0],lgM=fromIdx(TODAY)[1],lgTab='all';
@@ -1375,7 +1454,7 @@ function renderLedger(){
   const list=lgTab==='all'?all:all.filter(e=>e.k===lgTab);
   const who=s=>`<button type="button" class="lgname" data-act="open" data-id="${s.id}">${esc(s.name)}</button>`;
   const row=e=>{const s=e.s,rm=`${t('room')} ${num(esc(s.room))}`;
-    if(e.k==='pay')return`<div class="xrow"><span class="xcat">${who(s)}<span class="sub">${t('lgPaid')} · ${t(e.p.h)} · ${rm}</span></span><b class="inc">+ ${rs(e.p.a)}</b></div>`;
+    if(e.k==='pay')return`<div class="xrow"><span class="xcat">${who(s)}<span class="sub">${t('lgPaid')} · ${howName(e.p.h)} · ${rm}</span></span><b class="inc">+ ${rs(e.p.a)}</b></div>`;
     if(e.k==='join')return`<div class="xrow"><span class="xcat">${who(s)}<span class="sub">${t('lgJoined')} · ${rm} · ${t('lgFee',rs(s.fee))}</span></span><span class="tag ok">${t('lgNew')}</span></div>`;
     return`<div class="xrow"><span class="xcat">${who(s)}<span class="sub">${t('lgLeftT')} · ${rm}${s.left?` · ${t('lgOwe',rs(s.left))}`:''}</span></span><span class="tag soon">${t('lgLeftTag')}</span></div>`};
   const days=[];list.forEach(e=>{const g=days[days.length-1];if(g&&g.d===e.d)g.es.push(e);else days.push({d:e.d,es:[e]})});
@@ -1389,6 +1468,27 @@ function renderLedger(){
 }
 Object.assign(T.en,{ledger:'Ledger',lgAll:'All',lgPayT:'Paid',lgJoinH:'Joined',lgLeftH:'Left',lgGot:'Fees received',lgTimes:n=>n+' payments',lgPaid:'Paid',lgJoined:'Joined the hostel',lgLeftT:'Left the hostel',lgLeftTag:'Left',lgNew:'New',lgFee:a=>a+' a month',lgOwe:a=>'still owes '+a,lgNone:'Nothing happened in this month.'});
 Object.assign(T.ne,{ledger:'खाता',lgAll:'सबै',lgPayT:'तिरेका',lgJoinH:'आएका',lgLeftH:'गएका',lgGot:'उठेको शुल्क',lgTimes:n=>n+' पटक',lgPaid:'तिरे',lgJoined:'होस्टलमा आए',lgLeftT:'होस्टल छोडे',lgLeftTag:'गए',lgNew:'नयाँ',lgFee:a=>'महिनाको '+a,lgOwe:a=>a+' बाँकी',lgNone:'यो महिना केही भएन।'});
+// Texts for the money ledger, receipts, reminders with payment details, summaries (2026-11-26)
+Object.assign(T.en,{edit:'Edit',change:'Change',addCh:'Add charge',chargesH:n=>`Charges (${n})`,chargesSum:(a,b,c)=>`Charged ${a} · Paid ${b} · Left: ${c}`,noCh:'No charges yet.',
+ ch_fee:'Monthly fee',ch_elec:'Electricity',ch_food:'Food / mess',ch_adm:'Admission',ch_fine:'Fine',ch_other:'Other',ch_disc:'Discount',ch_adj:'Balance from before',dep:'From deposit',
+ edPayT:n=>'Fix payment from '+n,edChT:'Fix charge',addChT:n=>'Add charge for '+n,chWhat:'What is it for?',chNotePh:'e.g. Mangsir electricity',chHelp:'It is added to what the student has to pay. A discount takes money off.',
+ edFeeT:n=>'Monthly fee for '+n,edFeeHelp:d=>'The new fee starts from '+d+'. Months already charged stay the same.',edPayDel:'Delete this payment',edChDel:'Delete this charge',
+ chAdded:(k,a)=>k+' '+a+' added.',edGone:'Deleted.',
+ lPayEdit:(a,b)=>`Payment changed from ${a} to ${b}`,lPayDel:a=>`Payment of ${a} deleted`,lCharge:(a,b,n)=>`${n} added: ${a}`,lChEdit:(a,b,n)=>`${n} changed from ${a} to ${b}`,lChDel:(a,b,n)=>`${n} of ${a} deleted`,lFee:(a,b)=>`Monthly fee changed from ${a} to ${b}`,
+ rcAfter:'Payment saved. Send this receipt to the student?',
+ qPayInfo:'How students can pay you',helpPayInfo:'Written under every reminder message. Leave empty if you do not want it.',phPayInfo:'e.g. eSewa / Khalti: 98XXXXXXXX (Hamro Hostel)',
+ sumSend:'Send this month\'s summary on WhatsApp',sumFees:'Fees received',sumOther:'Other income',sumOut:'Spent',sumOwed:'Still to collect',sumLate:n=>n+' late',sumBeds:'Empty beds',
+ bedsShare:'Share free beds on WhatsApp',bedsHead:h=>h+': beds available',bedsNow:'Free now',bedsSoon:'Free from',bedsAsk:'Message us to book a bed.'});
+Object.assign(T.ne,{edit:'सच्याउनुहोस्',change:'बदल्नुहोस्',addCh:'शुल्क थप्नुहोस्',chargesH:n=>`शुल्कहरू (${n})`,chargesSum:(a,b,c)=>`लागेको ${a} · तिरेको ${b} · बाँकी: ${c}`,noCh:'अहिलेसम्म कुनै शुल्क छैन।',
+ ch_fee:'मासिक शुल्क',ch_elec:'बिजुली',ch_food:'खाना / मेस',ch_adm:'भर्ना',ch_fine:'जरिवाना',ch_other:'अरू',ch_disc:'छुट',ch_adj:'पहिलेको बाँकी',dep:'धरौटीबाट',
+ edPayT:n=>n+' को भुक्तानी सच्याउनुहोस्',edChT:'शुल्क सच्याउनुहोस्',addChT:n=>n+' लाई शुल्क थप्नुहोस्',chWhat:'केको लागि?',chNotePh:'जस्तै: मंसिरको बिजुली',chHelp:'यो विद्यार्थीले तिर्नुपर्ने रकममा थपिन्छ। छुटले रकम घटाउँछ।',
+ edFeeT:n=>n+' को मासिक शुल्क',edFeeHelp:d=>'नयाँ शुल्क '+d+' देखि लाग्छ। पहिले लागेका महिना उस्तै रहन्छन्।',edPayDel:'यो भुक्तानी मेटाउनुहोस्',edChDel:'यो शुल्क मेटाउनुहोस्',
+ chAdded:(k,a)=>k+' '+a+' थपियो।',edGone:'मेटाइयो।',
+ lPayEdit:(a,b)=>`भुक्तानी ${a} बाट ${b} बनाइयो`,lPayDel:a=>`${a} को भुक्तानी मेटाइयो`,lCharge:(a,b,n)=>`${n} थपियो: ${a}`,lChEdit:(a,b,n)=>`${n} ${a} बाट ${b} बनाइयो`,lChDel:(a,b,n)=>`${a} को ${n} मेटाइयो`,lFee:(a,b)=>`मासिक शुल्क ${a} बाट ${b} बनाइयो`,
+ rcAfter:'भुक्तानी सेभ भयो। यो रसिद विद्यार्थीलाई पठाउने?',
+ qPayInfo:'विद्यार्थीले तपाईंलाई कसरी तिर्ने',helpPayInfo:'हरेक सम्झना सन्देशको तल लेखिन्छ। नचाहे खाली छोड्नुहोस्।',phPayInfo:'जस्तै: eSewa / Khalti: ९८XXXXXXXX (हाम्रो होस्टल)',
+ sumSend:'यो महिनाको सारांश व्हाट्सएपमा पठाउनुहोस्',sumFees:'उठेको शुल्क',sumOther:'अरू आम्दानी',sumOut:'खर्च',sumOwed:'उठाउन बाँकी',sumLate:n=>n+' जना ढिला',sumBeds:'खाली बेड',
+ bedsShare:'खाली बेड व्हाट्सएपमा सेयर गर्नुहोस्',bedsHead:h=>h+': बेड खाली छ',bedsNow:'अहिले खाली',bedsSoon:'खाली हुने मिति',bedsAsk:'बेड बुक गर्न सन्देश पठाउनुहोस्।'});
 function render(){
   document.documentElement.lang=lang;
   document.getElementById('note').textContent=t('note');
@@ -1465,23 +1565,77 @@ Object.assign(T.en,{dashboard:'Home',navMoney:'Money'});
 Object.assign(T.ne,{dashboard:'होम',navMoney:'पैसा'});
 T.en.esewa='eSewa';T.en.khalti='Khalti';T.ne.esewa='eSewa';T.ne.khalti='Khalti';
 function applyPay(s,amt,how,d=TODAY,quiet=false){
+  ledgerize(s);
   const snap=JSON.stringify(s),arr=S.includes(s)?S:PAST,i=arr.indexOf(s);
-  let extra=amt-s.left;
-  if(extra>=0){s.left=0;s.lateSince=null;s.credit+=extra;
-    while(s.credit>=s.fee){s.nextDue=addMonth(s.nextDue,jdOf(s));s.credit-=s.fee}
-  }else s.left-=amt;
-  s.pays.unshift({d,a:amt,h:how});
+  s.payN=(s.payN||s.pays.length)+1;
+  s.pays.unshift({id:nid(s),no:s.payN,d,a:amt,h:how});
   s.log.push({d,k:'lPaid',a:amt,h:how});
   s.sent=false;
+  recalc(s);
   if(quiet)return;
   render();
   toast(t('saved',rs(amt),s.name),()=>{arr[i]=JSON.parse(snap);render()});
 }
+// Put a changed student back exactly as it was (used by Undo).
+function restoreStudent(s,snap){const arr=S.includes(s)?S:PAST,i=arr.indexOf(s);if(i>=0){arr[i]=JSON.parse(snap);render()}}
+const logText=l=>l.k==='lPaid'?t('lPaid',rs(l.a),howName(l.h)):l.k==='lSettle'?t('lSettle',rs(l.a),rs(l.b)):
+  typeof T[lang][l.k]==='function'?t(l.k,rs(l.a||0),rs(l.b||0),l.n?t('ch_'+l.n):''):t(l.k);
+
+// ---- Fix a payment, add or fix a charge, change the monthly fee (2026-11-26) ----
+const edDlg=document.getElementById('ed');let edState=null;
+const payChips=sel=>`<div style="display:grid;gap:6px;font-weight:600">${t('how')}<div class="chips">${Object.keys(cfg.pay).filter(h=>cfg.pay[h]||h===sel).map(h=>`<button type="button" class="chip" data-act="edhow" data-v="${h}" aria-pressed="${sel===h}">${howName(h)}</button>`).join('')}</div></div>`;
+function openEd(k,s,ref){
+  ledgerize(s);edState={k,id:s.id,ref,kind:'elec',how:null};
+  const amt=(v,lab=t('amount'))=>`<label style="display:grid;gap:4px;font-weight:600">${lab}<input class="amt" id="ed-amt" inputmode="numeric" autocomplete="off" value="${v}"></label>`;
+  let h='',del=false;
+  if(k==='pay'){const p=s.pays.find(x=>x.id===ref);if(!p)return;edState.how=p.h;del=true;
+    h=`<h2>${t('edPayT',esc(s.name))}</h2><span class="sub">${fmt(p.d)} · ${t('rcNo')} R-${num(rcNum(s,p))}</span>${amt(p.a)}${p.h==='dep'?'':payChips(p.h)}`}
+  if(k==='charge'){const c=ref?s.ch.find(x=>x.id===ref):null;if(ref&&!c)return;edState.kind=c?c.k:'elec';del=!!c;
+    h=`<h2>${c?t('edChT'):t('addChT',esc(s.name))}</h2>`+
+      (c?`<span class="sub">${esc(chName(c))} · ${fmt(c.d)}</span>`:`<div style="display:grid;gap:6px;font-weight:600">${t('chWhat')}<div class="chips">${CH_KINDS.map(x=>`<button type="button" class="chip" data-act="edkind" data-v="${x}" aria-pressed="${x===edState.kind}">${t('ch_'+x)}</button>`).join('')}</div></div>`)+
+      amt(c?Math.abs(c.a):'')+(c&&c.k==='fee'?'':`<label class="fld">${t('mNote')}<input id="ed-note" autocomplete="off" maxlength="60" value="${esc(c?c.note||'':'')}" placeholder="${t('chNotePh')}"></label>`)+
+      (c?'':`<span class="sub">${t('chHelp')}</span>`)}
+  if(k==='fee'){h=`<h2>${t('edFeeT',esc(s.name))}</h2>${amt(s.fee,t('fFee'))}<span class="sub">${t('edFeeHelp',fmt(s.billed))}</span>`}
+  edDlg.innerHTML=`<form class="dlg" id="edf" novalidate>${h}<div class="err" id="ed-err" role="alert"></div>
+   <div class="row2"><button type="submit" class="btn pri big">${t('save')}</button><button type="button" class="btn sec big" data-act="edx">${t('cancel')}</button></div>
+   ${del?`<button type="button" class="btn del" data-act="eddel">${I.trash}${k==='pay'?t('edPayDel'):t('edChDel')}</button>`:''}</form>`;
+  edDlg.showModal();const a=document.getElementById('ed-amt');a.focus();a.select();
+}
+document.addEventListener('submit',e=>{
+  if(e.target.id!=='edf')return;e.preventDefault();
+  const st=edState,s=byId(st.id),err=document.getElementById('ed-err');
+  const a=Number(String(document.getElementById('ed-amt').value).replace(/[^\d]/g,''))||0;
+  const note=(document.getElementById('ed-note')?.value||'').trim();
+  if(a<=0){err.textContent=t('amtErr');return}
+  const snap=JSON.stringify(s);let msg=t('savedS');
+  if(st.k==='pay'){const p=s.pays.find(x=>x.id===st.ref);if(p.a!==a)s.log.push({d:TODAY,k:'lPayEdit',a:p.a,b:a});p.a=a;if(st.how)p.h=st.how}
+  if(st.k==='charge'){
+    if(st.ref){const c=s.ch.find(x=>x.id===st.ref),v=c.k==='disc'||(c.k==='adj'&&c.a<0)?-a:a;if(c.a!==v)s.log.push({d:TODAY,k:'lChEdit',a:Math.abs(c.a),b:a,n:c.k});c.a=v;if(c.k!=='fee')c.note=note}
+    else{const v=st.kind==='disc'?-a:a;s.ch.push({id:nid(s),d:TODAY,a:v,k:st.kind,note});s.log.push({d:TODAY,k:'lCharge',a,n:st.kind});msg=t('chAdded',t('ch_'+st.kind),rs(a))}}
+  if(st.k==='fee'){if(s.fee!==a){s.log.push({d:TODAY,k:'lFee',a:s.fee,b:a});s.fee=a}}
+  s.sent=false;recalc(s);edDlg.close();render();toast(msg,()=>restoreStudent(byId(st.id),snap));
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const{act,v}=b.dataset;
+  if(act==='pedit')openEd('pay',byId(+b.dataset.id),+v);
+  if(act==='cedit')openEd('charge',byId(+b.dataset.id),+v);
+  if(act==='chadd')openEd('charge',byId(+b.dataset.id),null);
+  if(act==='feeedit')openEd('fee',byId(+b.dataset.id),null);
+  if(act==='edx')edDlg.close();
+  if(act==='edkind'){edState.kind=v;edDlg.querySelectorAll('[data-act="edkind"]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.v===v))}
+  if(act==='edhow'){edState.how=v;edDlg.querySelectorAll('[data-act="edhow"]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.v===v))}
+  if(act==='eddel'){const st=edState,s=byId(st.id),snap=JSON.stringify(s);
+    if(st.k==='pay'){const p=s.pays.find(x=>x.id===st.ref);s.pays=s.pays.filter(x=>x!==p);s.log.push({d:TODAY,k:'lPayDel',a:p.a})}
+    else{const c=s.ch.find(x=>x.id===st.ref);s.ch=s.ch.filter(x=>x!==c);s.log.push({d:TODAY,k:'lChDel',a:Math.abs(c.a),n:c.k})}
+    s.sent=false;recalc(s);edDlg.close();render();toast(t('edGone'),()=>restoreStudent(byId(st.id),snap))}
+});
+const rcNum=(s,p)=>s.id*100+(p.no||s.pays.length-s.pays.indexOf(p));
 document.addEventListener('input',e=>{
   if(e.target.id==='search'){q=e.target.value;renderRows()}
   if(e.target.id==='psearch'){pq=e.target.value;renderPeopleRows()}
   if(e.target.id==='s-name')cfg.name=e.target.value;
   if(e.target.id==='s-fee')cfg.defaultFee=Number(e.target.value.replace(/\D/g,''))||0;
+  if(e.target.id==='s-payinfo')cfg.payInfo=e.target.value;
   if(e.target.dataset.tpl){cfg.tpl[lang][e.target.dataset.tpl]=fromFriendly(e.target.value);document.getElementById('s-preview').textContent=previewText()}
   if(e.target.id==='p-amt'){payState.amt=e.target.value;updAfter()}
   if(e.target.id==='p-n'){payState.n=e.target.value;periodAmt()}
@@ -1489,6 +1643,7 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',e=>{
   if(e.target.id==='a-block'){addBlk=e.target.value;document.getElementById('a-room').innerHTML=bedOpts(addBlk);return}
   if(e.target.id==='s-name'||e.target.id==='s-fee'){render();toast(t('savedS'));return}
+  if(e.target.id==='s-payinfo'){toast(t('savedS'));return}
   if(e.target.dataset.tpl){toast(t('savedS'));return}
   const k=e.target.dataset.set;if(!k)return;const v=e.target.value;
   if(k==='billing'){cfg.billing=v;applyBilling()}
@@ -1508,6 +1663,8 @@ document.addEventListener('submit',e=>{
     const a=amtVal();
     if(a<=0){document.getElementById('p-err').textContent=t('amtErr');return}
     const s=byId(payState.id);dlg.close();applyPay(s,a,payState.how);
+    // Offer the receipt straight away, ready to send on WhatsApp.
+    if(cfg.mods.msgs&&s.ph)openReceipt(s,0,true);
   }
   if(e.target.id==='addf'){
     const g=id=>document.getElementById(id)?.value.trim()??'',err=document.getElementById('a-err');
@@ -1523,8 +1680,12 @@ document.addEventListener('submit',e=>{
     const paidAmt=addPaid?Number(g('a-paid').replace(/[^\d]/g,'')):0;if(addPaid&&!paidAmt){err.textContent=t('amtErr');return}
     const ds=dues(join,d),last=ds[ds.length-1];
     const extra={};if(cfg.fields.college)extra[t('fCollege')]=g('a-college');if(cfg.fields.address)extra[t('fAddress')]=g('a-address');cfg.custom.forEach((c,i)=>extra[c]=g('a-c'+i));
-    S.push({id:nextId++,name,ph,gd:gd||ph,room:g('a-room'),fee,join,jd:d,months,...(days?{days}:{}),left:fee,lateSince:last,nextDue:addMonth(last,cfg.billing==='fixed'?cfg.billDay:d),pays:[],log:[{d:join,k:'lJoin'}],credit:0,sent:false,dep:Number(g('a-dep').replace(/\D/g,''))||0,extra});
-    if(paidAmt)applyPay(S[S.length-1],paidAmt,addHow,Math.min(join,TODAY),true);
+    // Only the current month is charged. Months before it are treated as settled outside the app.
+    const ns={id:nextId++,name,ph,gd:gd||ph,room:g('a-room'),fee,join,jd:d,months,...(days?{days}:{}),
+      ch:[{id:1,d:last,a:fee,k:'fee'}],seq:1,billed:addMonth(last,cfg.billing==='fixed'?cfg.billDay:d),pays:[],payN:0,
+      log:[{d:join,k:'lJoin'}],sent:false,dep:Number(g('a-dep').replace(/\D/g,''))||0,extra};
+    S.push(ns);recalc(ns);
+    if(paidAmt)applyPay(ns,paidAmt,addHow,Math.min(join,TODAY),true);
     bookBed=null;stayCustom=false;stay=12;view='people';peopleSort='join';pq='';render();toast(t('addedS',name));
   }
 });

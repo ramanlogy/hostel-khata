@@ -6,27 +6,36 @@
 (function(){
   const native=window.hkNative||null;
   const KEY='hk-data';
-  const VERSION=1;
+  const VERSION=2; // 2 = charges + payments ledger (2026-11-26)
 
   // Texts for the real app (replace the demo wording).
   Object.assign(T.en,{note:'',roomErr:'No empty bed. Add rooms in Settings, or free a bed first.',
     bkT:'Your data',bkSaved:'Everything saves by itself on this computer.',bkAuto:'A copy is also kept for each of the last 30 days.',
     bkExport:'Save a backup file',bkImport:'Restore from a backup file',bkFolder:'Open data folder',bkLogout:'Log out',
     bkTip:'Tip: save a backup to a USB drive or Google Drive once a week.',bkDone:'Backup saved.',bkBad:'This file is not a Hostel Khata backup.',
-    bkAsk:'Restore this backup? Everything now in the app will be replaced by the backup.',bkOk:'Backup restored.',bkWhere:'Saved in'});
+    bkAsk:'Restore this backup? Everything now in the app will be replaced by the backup.',bkOk:'Backup restored.',bkWhere:'Saved in',
+    mrT:'Second copy (USB drive or Google Drive)',mrNone:'Not set. If this computer breaks or is stolen, everything is lost. Choose a USB drive or your Google Drive folder.',
+    mrOn:d=>'Every change is also copied to: '+d,mrOk:'Last copied just now.',mrBad:'Could not copy there. Plug in the USB drive or open Google Drive.',mrPick:'Choose folder',mrChange:'Change folder',mrStop:'Stop copying',mrSet:'Second copy is on.',mrWarn:'Second copy failed. Plug in the USB drive or open Google Drive.'});
   Object.assign(T.ne,{note:'',roomErr:'खाली बेड छैन। सेटिङमा गएर कोठा थप्नुहोस् वा बेड खाली गर्नुहोस्।',
     bkT:'तपाईंको डाटा',bkSaved:'सबै कुरा यही कम्प्युटरमा आफैं सेभ हुन्छ।',bkAuto:'पछिल्ला ३० दिनको हरेक दिनको कपी पनि राखिन्छ।',
     bkExport:'ब्याकअप फाइल सेभ गर्नुहोस्',bkImport:'ब्याकअप फाइलबाट फर्काउनुहोस्',bkFolder:'डाटा फोल्डर खोल्नुहोस्',bkLogout:'लग आउट',
     bkTip:'सुझाव: हप्तामा एक पटक ब्याकअप USB वा Google Drive मा राख्नुहोस्।',bkDone:'ब्याकअप सेभ भयो।',bkBad:'यो Hostel Khata को ब्याकअप फाइल होइन।',
-    bkAsk:'यो ब्याकअप फर्काउने? अहिले एपमा भएको सबै डाटा ब्याकअपले बदलिन्छ।',bkOk:'ब्याकअप फर्कियो।',bkWhere:'सेभ हुने ठाउँ'});
+    bkAsk:'यो ब्याकअप फर्काउने? अहिले एपमा भएको सबै डाटा ब्याकअपले बदलिन्छ।',bkOk:'ब्याकअप फर्कियो।',bkWhere:'सेभ हुने ठाउँ',
+    mrT:'दोस्रो कपी (USB वा Google Drive)',mrNone:'राखिएको छैन। कम्प्युटर बिग्रिए वा चोरी भए सबै डाटा हराउँछ। USB वा Google Drive फोल्डर छान्नुहोस्।',
+    mrOn:d=>'हरेक परिवर्तन यहाँ पनि कपी हुन्छ: '+d,mrOk:'भर्खरै कपी भयो।',mrBad:'त्यहाँ कपी हुन सकेन। USB जोड्नुहोस् वा Google Drive खोल्नुहोस्।',mrPick:'फोल्डर छान्नुहोस्',mrChange:'फोल्डर बदल्नुहोस्',mrStop:'कपी गर्न बन्द',mrSet:'दोस्रो कपी सुरु भयो।',mrWarn:'दोस्रो कपी हुन सकेन। USB जोड्नुहोस् वा Google Drive खोल्नुहोस्।'});
 
-  let AUTH=null,ready=false,timer=null;
+  let AUTH=null,ready=false,timer=null,mirrorWarned=false;
 
   function snapshot(){return JSON.stringify({app:'hostel-khata',v:VERSION,savedAt:new Date().toISOString(),auth:AUTH,lang,cfg,S,PAST,EXP,RB,BEDS,BLK,nextId,expId})}
   function readRaw(){try{return native?native.load():localStorage.getItem(KEY)}catch(e){console.error(e);return null}}
   function writeNow(){
     if(!ready)return;clearTimeout(timer);timer=null;
-    try{native?native.save(snapshot()):localStorage.setItem(KEY,snapshot())}
+    try{
+      if(native){const m=native.save(snapshot());
+        // Warn once per session if the second copy fails (USB unplugged, Drive not running).
+        if(m&&m.ok===false&&!mirrorWarned){mirrorWarned=true;toast(t('mrWarn'))}
+        if(m&&m.ok)mirrorWarned=false;}
+      else localStorage.setItem(KEY,snapshot())}
     catch(e){console.error(e);toast('Could not save! '+(e&&e.message||''))}
   }
   function queueSave(){if(!ready)return;clearTimeout(timer);timer=setTimeout(writeNow,300)}
@@ -45,17 +54,11 @@
     if(d.lang==='en'||d.lang==='ne')lang=d.lang;
   }
 
-  // When a due date passes, add that month's fee to what the student owes.
-  // Uses any advance (credit) first. Stops at the end of the student's stay.
+  // When a due date passes, add that month's fee as a charge line (see bill() in index.html).
+  // Older saves are turned into charge lines the first time they load. Stops at the end of the stay.
   function rollDues(){
-    S.forEach(s=>{
-      for(let g=0;g<240&&s.nextDue<=TODAY&&s.nextDue<endIdx(s);g++){
-        const due=s.nextDue,use=Math.min(s.credit||0,s.fee),owe=s.fee-use;
-        s.credit=(s.credit||0)-use;
-        if(owe>0){if(!(s.left>0))s.lateSince=due;s.left=(s.left||0)+owe}
-        const n=addMonth(due,jdOf(s));if(n===due)break;s.nextDue=n;
-      }
-    });
+    S.forEach(bill);
+    PAST.forEach(recalc);
   }
 
   // Sample hostel: 50 made-up students in 3 blocks (60 beds, 10 empty).
@@ -96,8 +99,9 @@
       if(st!=='paid'&&toIdx(y,m,d)>TODAY-32){[y,m]=fromIdx(TODAY-45)}
       if(!ML[y]){y=2082;m=Math.max(m,1)}
       const ph='98'+String(41000000+i*7919).padStart(8,'0'),gd='98'+String(51000000+i*6151).padStart(8,'0');
-      const months=[6,12,12,24][i%4]+12;
-      S.push(make(nm,ph,gd,bed,fee,y,m,d,months,st));
+      const s=make(nm,ph,gd,bed,fee,y,m,d,12,st);
+      s.months=elapsed(s)+[2,5,8,11][i%4]; // 2 to 11 months of stay still left
+      S.push(s);
     });
   }
 
@@ -173,6 +177,10 @@
         ${native?`<button type="button" class="btn sec" data-bk="folder">${t('bkFolder')}</button>`:''}
         <button type="button" class="btn sec" data-bk="logout">${t('bkLogout')}</button>
       </div><span class="sub">${t('bkTip')}</span></div>`);
+    if(native&&native.mirror){const m=native.mirror();
+      app.insertAdjacentHTML('beforeend',`<div class="card" id="mr-card" style="max-width:920px"><h2>${t('mrT')}</h2>
+        ${m.dir?`<span class="sub">${t('mrOn',esc(m.dir))}</span><span class="sub ${m.ok===false?'warn':''}">${m.ok===false?t('mrBad'):m.ok?t('mrOk'):''}</span>`:`<span class="sub warn">${t('mrNone')}</span>`}
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"><button type="button" class="btn ${m.dir?'sec':'pri'}" data-bk="mrpick">${m.dir?t('mrChange'):t('mrPick')}</button>${m.dir?`<button type="button" class="btn sec" data-bk="mrstop">${t('mrStop')}</button>`:''}</div></div>`)}
   };
 
   function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`}
@@ -200,6 +208,8 @@
     if(k==='export')doExport();
     if(k==='import')doImport();
     if(k==='folder')native.openDataFolder();
+    if(k==='mrpick'){writeNow();native.pickMirror().then(r=>{if(r){mirrorWarned=false;render();toast(r.ok===false?t('mrBad'):t('mrSet'))}})}
+    if(k==='mrstop'){native.clearMirror();render()}
     if(k==='logout'){writeNow();location.reload()}
   });
 })();
