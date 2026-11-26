@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hostel Khata - the simple khata for hostel owners</title>
+<meta name="description" content="Hostel Khata keeps your students, fees, rooms and expenses in one simple khata on your computer. Know who has to pay, remind them on WhatsApp, and never lose a rupee.">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<style>
+/* Colours are Airbnb's web palette: Rausch red accent, #222 ink, #6A6A6A secondary text, #DDDDDD lines.
+   Shape rule: photo cards 16px, buttons 8px, pills full-round. */
+:root{
+  --rausch:#FF385C;--rausch-dark:#E00B41;
+  --ink:#222222;--grey:#6A6A6A;--line:#DDDDDD;--soft:#F7F7F7;--bg:#FFFFFF;
+  --r:16px;--r-btn:8px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Mukta',system-ui,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:'Poppins','Mukta',sans-serif;font-weight:600;margin:0;letter-spacing:-.02em;line-height:1.15}
+p{margin:0}
+a{color:inherit}
+img{display:block;max-width:100%}
+.ph{line-height:1}
+.wrap{max-width:1280px;margin:0 auto;padding:0 16px}
+section{padding:48px 0}
+.h2{font-size:22px;margin-bottom:20px}
+
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:var(--r-btn);padding:12px 20px;font:600 15px 'Poppins',sans-serif;text-decoration:none;white-space:nowrap;border:1px solid transparent;cursor:pointer;transition:transform .15s,background .15s}
+.btn:active{transform:scale(.97)}
+.btn-red{background:var(--rausch);color:#fff}
+.btn-red:hover{background:var(--rausch-dark)}
+.btn-white{background:#fff;color:var(--ink);border-color:var(--line)}
+.btn-white:hover{border-color:var(--ink)}
+.btn-sm{padding:8px 14px;font-size:13px}
+.btn-pill{border-radius:999px}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* header */
+header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #EBEBEB}
+.bar{display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{display:flex;align-items:center;gap:6px;color:var(--rausch);text-decoration:none;font:600 20px 'Poppins',sans-serif;letter-spacing:-.03em}
+.logo .ph{font-size:30px}
+.nav{display:none;gap:4px}
+.nav a{padding:10px 14px;border-radius:999px;text-decoration:none;font-size:15px;color:var(--ink)}
+.nav a:hover{background:var(--soft)}
+
+/* hero: a painted Kathmandu hostel (ink + watercolour). The card colour matches the
+   painting's paper-coloured sky, so the title sits on the sky and the picture blends in. */
+.hero{padding-top:16px}
+.hero-card{border-radius:var(--r);overflow:hidden;background:#F7E4C8;text-align:center;display:flex;flex-direction:column}
+.hero-in{padding:36px 20px 0;display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;z-index:1}
+.hero h1{font-size:34px;max-width:16ch;color:#2b2118}
+.hero p{font-size:18px;max-width:36ch;color:#5a4a3a}
+.hero .btn-white{border-color:#2b2118;background:transparent}
+.hero .btn-white:hover{background:rgba(255,255,255,.5)}
+.hero-cta{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.hero-art{display:block;width:100%;height:auto;margin-top:-4%}
+.hero-art img{width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;object-position:50% 100%;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14%);mask-image:linear-gradient(to bottom,transparent 0,#000 14%)}
+@media (min-width:744px){.hero-art img{aspect-ratio:auto}}
+/* the painting fades in once it has loaded, instead of drawing in strips on slow mobile data */
+.hero-art img.wait{opacity:0}
+@media (prefers-reduced-motion:no-preference){
+  .hero-art img{transition:opacity .8s ease,transform 1.4s cubic-bezier(.16,1,.3,1)}
+  .hero-art img.wait{transform:scale(1.03)}
+}
+/* app video under What it does */
+.demo{max-width:1040px;margin:56px auto 0;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:var(--soft);box-shadow:0 6px 24px rgba(34,34,34,.08)}
+.demo{position:relative}
+.demo video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#F4F5F7}
+/* big play button over the poster; hidden once the video starts, then normal controls show */
+.vplay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:0;background:rgba(255,255,255,.4);cursor:pointer;font:600 16px 'Poppins',sans-serif;color:var(--ink)}
+.vplay span{width:76px;height:76px;border-radius:50%;background:var(--rausch);color:#fff;display:grid;place-items:center;font-size:32px;box-shadow:0 8px 28px rgba(255,56,92,.4);transition:transform .2s}
+.vplay span .ph-fill{margin-left:4px}
+.vplay:hover span{transform:scale(1.07)}
+.vplay[hidden]{display:none}
+.vplay em{font-style:normal;background:#fff;border-radius:999px;padding:6px 16px;box-shadow:0 2px 12px rgba(34,34,34,.12)}
+@media (max-width:743px){.vplay{font-size:13px;gap:8px}.vplay span{width:56px;height:56px;font-size:24px}}
+/* chapter pills jump to each part of the video */
+/* chat showcase: what the student sees on WhatsApp, with notes on what the owner did */
+.talk{display:grid;grid-template-columns:1fr;gap:32px;margin:72px auto 0;max-width:1040px;align-items:center}
+.talk:first-child{margin-top:0}
+.talk-h{font-size:28px;letter-spacing:-.03em;margin-bottom:10px}
+.talk-sub{color:var(--grey);font-size:17px;margin-bottom:24px}
+.talk ol{list-style:none;margin:0;padding:0;display:grid;gap:18px;counter-reset:t}
+.talk li{display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:start;counter-increment:t}
+.talk li::before{content:counter(t);width:32px;height:32px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font:600 14px 'Poppins',sans-serif}
+.talk li b{display:block;font:600 16px 'Poppins',sans-serif;margin-top:4px}
+.talk li span{color:var(--grey);font-size:15.5px}
+.chat{background:#EFEAE2;border-radius:24px;padding:18px 14px 22px;display:flex;flex-direction:column;gap:8px;box-shadow:0 6px 24px rgba(34,34,34,.08);max-width:420px;width:100%;justify-self:center}
+.chat-top{display:flex;align-items:center;gap:10px;padding:0 4px 10px;border-bottom:1px solid rgba(0,0,0,.06);margin-bottom:4px}
+.chat-top .av{width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;font:600 13px 'Poppins',sans-serif;color:var(--grey)}
+.chat-top b{font:600 15px 'Poppins',sans-serif}
+.chat-top small{display:block;color:var(--grey);font-size:12.5px}
+.day-chip{align-self:center;background:#fff;border-radius:8px;padding:3px 10px;font-size:12.5px;color:var(--grey)}
+.b{max-width:85%;padding:8px 12px 6px;border-radius:12px;font-size:15px;line-height:1.4;box-shadow:0 1px 1px rgba(0,0,0,.06);white-space:pre-line}
+.b i{display:block;text-align:right;font-style:normal;font-size:11px;color:#667781;margin-top:2px}
+.b.me{align-self:flex-end;background:#D9FDD3;border-top-right-radius:4px}
+.b.them{align-self:flex-start;background:#fff;border-top-left-radius:4px}
+.b.rc{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.b.rc i{font-family:'Mukta',sans-serif}
+.note{align-self:center;font-size:12.5px;color:var(--ink);background:rgba(255,255,255,.7);border:1px dashed #C9C2B6;border-radius:999px;padding:4px 12px;margin:4px 0}
+@media (prefers-reduced-motion:no-preference){.chat .rise:nth-child(3){transition-delay:.1s}.chat .rise:nth-child(4){transition-delay:.25s}.chat .rise:nth-child(5){transition-delay:.4s}.chat .rise:nth-child(6){transition-delay:.55s}.chat .rise:nth-child(7){transition-delay:.7s}.chat .rise:nth-child(8){transition-delay:.85s}.chat .rise:nth-child(9){transition-delay:1s}}
+@media (min-width:900px){.talk{grid-template-columns:1fr 420px;gap:64px}.talk-h{font-size:40px}}
+
+.vid-head{text-align:center;margin:96px auto 0;max-width:640px}
+.vid-head .talk-sub{margin-bottom:0}
+.vid-head+.demo{margin-top:28px}
+.chapters{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:1040px;margin:14px auto 0}
+.chapters button{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font:500 14px 'Poppins','Mukta',sans-serif;color:var(--ink);cursor:pointer}
+.chapters button:hover{border-color:var(--ink)}
+.chapters .ph{font-size:18px;color:var(--rausch)}
+@media (max-width:743px){.chapters{display:grid;grid-template-columns:1fr 1fr}.chapters button{font-size:13px;padding:8px 10px;justify-content:center}}
+
+/* two big photo cards with text on top */
+.duo{display:grid;grid-template-columns:1fr;gap:16px}
+.scene{position:relative;border-radius:var(--r);overflow:hidden;min-height:420px;color:#fff;display:flex;background:#333}
+.scene img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.scene::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,rgba(0,0,0,.35) 50%,rgba(0,0,0,0) 80%)}
+.scene .over{position:relative;z-index:1;padding:32px 28px;display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+.scene h2{font-size:30px;max-width:12ch}
+.scene p{font-size:16px;max-width:32ch}
+
+/* promises: big centred heading, icon tiles, short centred text */
+.promise-h{font-size:36px;text-align:center;max-width:22ch;margin:0 auto 40px;letter-spacing:-.03em;line-height:1.08}
+.promises{display:grid;grid-template-columns:1fr;gap:40px;max-width:1120px;margin:0 auto}
+.promise{text-align:center;display:flex;flex-direction:column;align-items:center}
+.promise .tile{width:88px;height:88px;border-radius:20px;background:var(--soft);display:grid;place-items:center;margin-bottom:24px}
+.promise .tile .ph{font-size:40px;color:var(--ink)}
+.promise h3{font-size:24px;margin-bottom:8px}
+.promise p{color:var(--grey);font-size:17px;max-width:28ch}
+
+/* questions banner */
+.ask{position:relative;border-radius:var(--r);overflow:hidden;min-height:520px;color:#fff;display:flex;background:#2b3a4a}
+.ask img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:60% 50%}
+.ask::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.45) 0%,rgba(0,0,0,.05) 50%,rgba(0,0,0,.35) 100%)}
+.ask .over{position:relative;z-index:1;padding:32px 28px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;width:100%}
+.ask h2{font-size:44px;max-width:9ch;line-height:1.05}
+
+/* help strip: two people on the left, text, dark button */
+.help{background:#EEEBE4;border-radius:var(--r);display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;padding:24px 20px 28px;overflow:hidden}
+.help img{width:190px;height:auto;order:3;margin-bottom:-28px}
+.help h2{font-size:22px;margin-bottom:6px}
+.help p{color:var(--grey);font-size:17px}
+.btn-dark{background:var(--ink);color:#fff;border-radius:999px;padding:12px 26px}
+.btn-dark:hover{background:#000}
+@media (min-width:744px){
+  .help{flex-direction:row;text-align:left;padding:0 40px 0 32px;gap:28px;min-height:150px}
+  .help img{width:160px;align-self:flex-end;order:0;margin-bottom:0}
+  .help .txt{flex:1}
+}
+
+footer{background:var(--soft);border-top:1px solid #EBEBEB;margin-top:48px;padding:36px 0 48px;font-size:14px}
+.fcols{display:grid;grid-template-columns:1fr;gap:24px}
+.fcols h4{font:600 14px 'Poppins',sans-serif;margin:0 0 10px}
+.fcols a{display:block;text-decoration:none;color:var(--ink);padding:4px 0}
+.fcols a:hover{text-decoration:underline}
+.fbase{border-top:1px solid var(--line);margin-top:28px;padding-top:20px;color:var(--grey);display:flex;flex-direction:column;gap:6px}
+
+/* gentle entrance on scroll, off when the viewer prefers less motion */
+@media (prefers-reduced-motion:no-preference){
+  .rise{opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+  .rise.in{opacity:1;transform:none}
+}
+
+@media (min-width:744px){
+  .wrap{padding:0 40px}
+  .duo{grid-template-columns:1fr 1fr}
+  .promises{grid-template-columns:1fr 1fr;row-gap:48px}
+  .promise-h{font-size:48px}
+  .fcols{grid-template-columns:repeat(2,1fr)}
+  .fbase{flex-direction:row;justify-content:space-between}
+}
+@media (min-width:1128px){
+  .wrap{padding:0 80px}
+  .nav{display:flex}
+  section{padding:64px 0}
+  .h2{font-size:28px}
+  .hero-in{padding-top:48px}
+  .hero-art{margin-top:-9%}
+  .hero h1{font-size:52px}
+  .promises{grid-template-columns:repeat(4,1fr);column-gap:32px}
+  .promise-h{font-size:60px;margin-bottom:56px}
+  .scene{min-height:520px}
+  .scene h2{font-size:40px}
+  .ask{min-height:620px}
+  .ask h2{font-size:72px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="#top" aria-label="Hostel Khata home"><i class="ph ph-book-open-text" aria-hidden="true"></i>hostel khata</a>
+    <nav class="nav" aria-label="Main">
+      <a href="#promise">What it does</a>
+      <a href="#video">See the app</a>
+      <a href="#ask">Questions</a>
+    </nav>
+    <a class="btn btn-red btn-sm" href="index.html">Try the demo</a>
+  </div>
+</header>
+
+<main id="top">
+
+<div class="wrap hero">
+  <div class="hero-card">
+    <div class="hero-in">
+      <h1>Run your hostel without the diary</h1>
+      <p>Fees, students and rooms in one simple khata. Track everything in one place.</p>
+      <div class="hero-cta">
+        <a class="btn btn-dark btn-pill" href="index.html">Try the demo<i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+        <a class="btn btn-white btn-pill" href="#video"><i class="ph ph-play-circle" aria-hidden="true"></i>How it works</a>
+      </div>
+    </div>
+    <picture class="hero-art">
+      <!-- phones get a square crop of the full-size painting, so it stays sharp instead of being enlarged -->
+      <source media="(max-width:743px)" type="image/webp" srcset="img/hero-hostel-sq.webp" width="864" height="864">
+      <source media="(max-width:743px)" srcset="img/hero-hostel-sq.jpg" width="864" height="864">
+      <source type="image/webp" srcset="img/hero-hostel.webp">
+      <img src="img/hero-hostel.jpg" width="1536" height="864" fetchpriority="high" decoding="async" alt="Painting of a brick student hostel on a Kathmandu lane: students drinking tea on the roof, laundry on the balcony, bunk beds through the windows, a momo stall and prayer flags, with snow peaks behind.">
+    </picture>
+    <script>(function(i){if(i&&!i.complete){i.classList.add('wait');var d=function(){i.classList.remove('wait')};i.addEventListener('load',d);i.addEventListener('error',d)}})(document.querySelector('.hero-art img'))</script>
+  </div>
+</div>
+
+<section id="see">
+  <div class="wrap">
+    <div class="talk">
+      <div>
+        <h2 class="talk-h">No awkward calls about fees</h2>
+        <p class="talk-sub">This is what your student sees on WhatsApp.</p>
+        <ol>
+          <li><div><b>Hostel Khata writes the reminder</b><span>You only press Send.</span></div></li>
+          <li><div><b>The student pays</b><span>Cash, eSewa, Khalti or bank.</span></div></li>
+          <li><div><b>You tap Receive</b><span>It is written down, and the receipt is ready to send.</span></div></li>
+        </ol>
+      </div>
+      <div class="chat" aria-label="Example WhatsApp chat between a hostel and a student">
+        <div class="chat-top"><span class="av">RR</span><div><b>Rina Rai</b><small>Room 104-A</small></div></div>
+        <span class="day-chip">10 Mangsir</span>
+        <div class="b me rise">Namaste Rina, your hostel fee of Rs 22,000 has been left to pay since 1 Kartik. Please pay soon. Thank you, Sunrise Hostel.<i>9:02 am</i></div>
+        <span class="note rise">Written by Hostel Khata</span>
+        <div class="b them rise">Sorry dai, I forgot! Paying now on eSewa 🙏<i>9:15 am</i></div>
+        <div class="b them rise">Sent. Rs 22,000<i>9:21 am</i></div>
+        <span class="note rise">You tap Receive, Rs 22,000, eSewa</span>
+        <div class="b me rc rise">Sunrise Hostel
+Receipt no. R-142
+Student: Rina Rai
+Date: 10 Mangsir 2083
+Amount: Rs 22,000 (eSewa)
+Left to pay now: Rs 0<i>9:23 am</i></div>
+        <div class="b them rise">Thank you dai 👍<i>9:24 am</i></div>
+      </div>
+    </div>
+    <div class="vid-head">
+      <h2 class="talk-h">See it in one minute</h2>
+      <p class="talk-sub">A real tour of the app: students, reminders, beds and money.</p>
+    </div>
+    <div class="demo rise" id="video">
+      <!-- Recorded from the real app (index.html, sample students) with headless Chrome. No sound. -->
+      <video id="tour" playsinline preload="metadata" poster="img/how-it-works.jpg" width="1920" height="1080" aria-label="One-minute tour of Hostel Khata: adding a student, a WhatsApp reminder, the rooms view and money in and out">
+        <source src="img/how-it-works.mp4" type="video/mp4">
+      </video>
+      <button type="button" class="vplay" id="vplay" aria-label="Play the 1-minute tour"><span><i class="ph-fill ph-play" aria-hidden="true"></i></span><em>Watch the 1-minute tour</em></button>
+    </div>
+    <div class="chapters" role="group" aria-label="Jump to a part of the video">
+      <button type="button" data-t="12.2"><i class="ph ph-user-plus" aria-hidden="true"></i>Add a student</button>
+      <button type="button" data-t="29.5"><i class="ph ph-whatsapp-logo" aria-hidden="true"></i>WhatsApp reminders</button>
+      <button type="button" data-t="41.6"><i class="ph ph-bed" aria-hidden="true"></i>Empty and booked beds</button>
+      <button type="button" data-t="58"><i class="ph ph-coins" aria-hidden="true"></i>Money in and out</button>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <h2 class="h2">Made for hostels like yours</h2>
+    <div class="duo">
+      <div class="scene rise">
+        <img src="img/dorm-bright.jpg" alt="A bright hostel dormitory with bunk beds" loading="lazy">
+        <div class="over">
+          <h2>Boys and girls student hostels</h2>
+          <p>Many blocks, floors and rooms? Every bed and every student stays in order.</p>
+          <a class="btn btn-white btn-sm" href="#video">See the rooms view</a>
+        </div>
+      </div>
+      <div class="scene rise">
+        <img src="img/laptop-tea.jpg" alt="A laptop, a phone and a cup of tea on a wooden desk in warm light" loading="lazy">
+        <div class="over">
+          <h2>Small hostels and PGs</h2>
+          <p>Run by one owner, with no staff and no training. If you can use WhatsApp, you can use Hostel Khata.</p>
+          <a class="btn btn-white btn-sm" href="index.html">Try the demo</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="help" style="padding-top:0">
+  <div class="wrap">
+    <div class="help rise">
+      <img src="img/help-people.jpg" alt="A smiling hostel owner and a young helper waving hello" width="370" height="400" loading="lazy">
+      <div class="txt">
+        <h2>Get help setting up your hostel</h2>
+        <p>Talk 1-on-1 with us on WhatsApp, in English or नेपाली.</p>
+      </div>
+      <!-- TODO: same WhatsApp number as the Ask us button -->
+      <a class="btn btn-dark" href="#ask">Get in touch</a>
+    </div>
+  </div>
+</section>
+
+<section id="promise">
+  <div class="wrap">
+    <h2 class="promise-h">What Hostel Khata does</h2>
+    <div class="promises">
+      <div class="promise rise"><span class="tile"><i class="ph ph-list-checks" aria-hidden="true"></i></span><h3>Know who has to pay</h3><p>Late, due soon and paid, sorted automatically.</p></div>
+      <div class="promise rise"><span class="tile"><i class="ph ph-whatsapp-logo" aria-hidden="true"></i></span><h3>Remind on WhatsApp</h3><p>The message is ready. You just press Send.</p></div>
+      <div class="promise rise"><span class="tile"><i class="ph ph-coins" aria-hidden="true"></i></span><h3>Every rupee written down</h3><p>Cash, eSewa, Khalti or bank. Nothing gets lost.</p></div>
+      <div class="promise rise"><span class="tile"><i class="ph ph-bed" aria-hidden="true"></i></span><h3>Rooms and beds</h3><p>See every empty bed at a glance.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="ask" style="padding-top:0">
+  <div class="wrap">
+    <div class="ask rise">
+      <img src="img/kathmandu.jpg" alt="Kathmandu valley under a blue sky with white clouds" loading="lazy">
+      <div class="over">
+        <h2>Questions about Hostel Khata?</h2>
+        <!-- TODO: put the real WhatsApp number here, e.g. https://wa.me/97798XXXXXXXX -->
+        <a class="btn btn-white" href="#ask" style="margin-top:32px"><i class="ph ph-whatsapp-logo" aria-hidden="true"></i>Ask us on WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fcols">
+      <div><h4>Hostel Khata</h4><a href="index.html">Try the demo</a><a href="#video">See the app</a></div>
+      <div><h4>Help</h4><a href="#ask">Ask us on WhatsApp</a><a href="#promise">What it does</a></div>
+    </div>
+    <div class="fbase"><span>© 2026 Hostel Khata. Made in Nepal.</span><span>English and नेपाली</span></div>
+  </div>
+</footer>
+
+<script>
+// Fade sections in as they scroll into view
+(function(){
+  var els=document.querySelectorAll('.rise');
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return}
+  var io=new IntersectionObserver(function(en){en.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(e){io.observe(e)});
+})();
+// Tour video: big play button first, then the browser's own controls. Chapter pills jump and play.
+(function(){
+  var v=document.getElementById('tour'),b=document.getElementById('vplay');if(!v)return;
+  function play(t){if(typeof t==='number'){try{v.currentTime=t}catch(e){}}b.hidden=true;v.controls=true;var p=v.play();if(p&&p.catch)p.catch(function(){})}
+  b.addEventListener('click',function(){play()});
+  document.querySelectorAll('.chapters [data-t]').forEach(function(c){c.addEventListener('click',function(){play(+c.dataset.t);v.scrollIntoView({behavior:'smooth',block:'center'})})});
+})();
+</script>
+</body>
+</html>
